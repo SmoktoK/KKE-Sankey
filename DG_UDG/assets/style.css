@@ -1,0 +1,30 @@
+.header {
+  background-color: #323232;
+  margin: 0px;
+  height: 46px;
+  vertical-align: middle;
+  display: flex;
+  overflow: clip;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.row{ margin-left: 0; margin-right: 0;}
+
+.logo {
+  alt: "sedmax";
+  max-width: 100px;
+  max-height: 32px;
+  vertical-align: middle;
+  margin-left: 20px;
+  op
+}
+
+.helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}

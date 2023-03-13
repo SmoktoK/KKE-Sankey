@@ -1,0 +1,150 @@
+.header {
+  background-color: #323232;
+  margin: 0px;
+  height: 46px;
+  vertical-align: middle;
+  display: flex;
+  overflow: clip;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.row{ margin-left: 0; margin-right: 0;}
+
+.logo {
+  alt: "sedmax";
+  max-width: 100px;
+  max-height: 32px;
+  vertical-align: middle;
+  margin-left: 20px;
+}
+
+.helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.DateInput_input{
+   background-color: #fff;
+   color: #000;
+   font-family: sans-serif;
+   font-size: 14px;
+   text-align: center;
+   padding: 5px 1px 1px 3px;
+   margin: 0px 2px 0px 2px;
+   border-bottom: none;
+}
+
+.DateInput_input__focused{
+border-bottom: 2px solid #316ca6;
+}
+
+.CalendarDay__selected_span {
+    background: #dae3e8;
+    border: 1px double rgba(50,50,50,0.1);
+    color: #000;
+}
+
+.CalendarDay__selected_span:hover {
+    background: #4f99c2;
+    border: 1px #4f99c2
+}
+
+.CalendarDay__selected, .CalendarDay__selected:active, .CalendarDay__selected:hover {
+    background: #316ca6;
+    border: 1px double #00a699;
+    color: #fdfdfd;
+}
+
+.DateRangePickerInput {
+    background-color: #fff;
+    display: inline-block;
+    padding: 0px;
+    height:=50px;
+    margin: 3px;
+    padding: 0px 4px 0px 0px;
+    border-radius: 3px;
+}
+
+.DateRangePickerInput_arrow_svg {
+    vertical-align: middle;
+    fill: #8c8c8c;
+    height: 25px;
+    width: 25px;
+    padding: 2px;
+}
+
+/* DASH row hover */
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table {
+    background-color: #ffffff;
+    --hover: #fafafa !important;
+ }
+
+.nav-tabs .nav-link.active {
+  color: #316ca6;
+  --hover: #4f99c2
+}
+
+.nav-link {
+  color: #000;
+  --hover: #4f99c2
+}
+
+.ant-tree-checkbox-checked .ant-tree-checkbox-inner {
+  background-color: #326da8 !important;
+  border-color: #326da8 !important;
+}
+
+.ant-tree-checkbox-indeterminate .ant-tree-checkbox-inner::after {
+    background-color: #326da8 !important;
+}
+
+.ant-electro-btn-primary {
+  height: 36px;
+  margin: 3px;
+  display: inline-flex;
+  align-items: center;
+  color: #fff;
+  border-color: #326da8;
+  background: #326da8;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.12);
+  box-shadow: 0 2px 0 rgba(0,0,0,.045);
+  /*font-family: "Tahoma";*/
+  border-radius: 4px;
+  font-family: sans-serif;
+  font-size: 14px;
+}
+
+@keyframes pulse{
+0%{background-color: red; border-color: red;}
+100%{background-color: #326da8; border-color: #326da8;}
+}
+
+.ant-electro-btn-primary_alarm {
+  height: 36px;
+  margin: 3px;
+  display: inline-flex;
+  align-items: center;
+  border-color: #326da8;
+  background: #326da8;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.12);
+  box-shadow: 0 2px 0 rgba(0,0,0,.045);
+  border-radius: 4px;
+  font-family: sans-serif;
+  font-size: 14px;
+  animation: pulse 3s linear infinite;
+}
+
+
+
+.ant-electro-btn-primary:focus, .ant-electro-btn-primary_alarm:focus {
+    outline: none 0px !important;
+    box-shadow: none !important;
+    border: none !important;
+ }

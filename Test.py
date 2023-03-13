@@ -1,0 +1,1 @@
+df['end'] = df.index + pd.to_timedelta(df['pq-duration'], unit='s')

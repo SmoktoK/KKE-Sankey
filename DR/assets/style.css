@@ -1,0 +1,71 @@
+.header {
+  background-color: #323232;
+  margin: 0px;
+  height: 46px;
+  vertical-align: middle;
+  display: flex;
+  overflow: clip;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.row{ margin-left: 0; margin-right: 0;}
+
+.logo {
+  alt: "sedmax";
+  max-width: 100px;
+  max-height: 32px;
+  vertical-align: middle;
+  margin-left: 20px;
+  op
+}
+
+.helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.DateInput_input{
+   background-color: rgba(50,50,50,0.2);
+   font-size: 14px;
+   padding: 4px 4px 4px;
+}
+
+.CalendarDay__selected_span {
+    background: rgba(50,50,50,0.4);
+    border: 1px double rgba(50,50,50,0.2);
+    color: #fff;
+}
+
+.CalendarDay__selected, .CalendarDay__selected:active, .CalendarDay__selected:hover {
+    background: #5f8dab;
+    border: 1px double #00a699;
+    color: #fdfdfd;
+}
+
+.DateRangePickerInput {
+    background-color: rgba(50,50,50,0.2);
+    display: inline-block;
+    padding: 7px;
+    border: none;
+}
+
+.DateRangePickerInput_arrow_svg {
+    vertical-align: middle;
+    fill: #fff;
+    height: 25px;
+    width: 25px;
+    padding: 2px;
+}
+
+/* DASH row hover */
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table {
+    background-color: rgba(50,50,50,0.2);
+    --hover: #323232 !important;
+ }
+
