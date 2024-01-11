@@ -10,13 +10,23 @@ def request_event(ID, begin, end, limit, filters):
 
     sessionFilters = True if filters != {} else False
 
+    # request = {
+    #     "filters": filters,
+    #     "sessionFilters": sessionFilters,
+    #     "limit": limit,
+    #     "configurationId": ID,
+    #     "begin": begin,
+    #     "end": end,
+    # }
+
     request = {
-        "filters": filters,
-        "sessionFilters": sessionFilters,
-        "limit": limit,
-        "configurationId": ID,
         "begin": begin,
+        "configurationId": ID,
         "end": end,
+        "filters": {},
+        "limit": limit,
+        "sessionFilters": sessionFilters,
+        "sort": []
     }
     return request
 
@@ -29,10 +39,10 @@ class EventJournal:
 
     def get_data(self, ID, begin, end, limit=1000, filters={}):
         url = self.host + '/sedmax/common_event_journal/archive/select'
+        # url = self.host + '/sedmax/archive_webapi/energy/data/'
         request = request_event(ID, begin, end, limit, filters)
 
         data = self.sedmax.get_data(url, request)
-
         df = pd.DataFrame(data['events'])
         # if response data is empty
         if len(data['events']) == 0:

@@ -94,6 +94,10 @@ def out_table(df):
     y = df.index.to_list()
     z_text = [list(df.iloc[i].values) for i in range(len(y))]
     z = np.array(z_text).clip(0, 10)
+    # x = [1]
+    # y = [0, 1, 5, 2]
+    # z = ['r', 'r', 't', 'f']
+    # z_text = y
 
     colorscale = [[0, 'rgb(0,200,0)'],
                   [0.1, 'rgb(100, 200, 0)'],

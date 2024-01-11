@@ -2,10 +2,13 @@ import json
 import requests
 import pandas as pd
 import sqlite3
-import numpy as np
+import csv
 from contextlib import closing
 import datetime
+import numpy as np
 from settings import SANKEY_DATABASE
+from settings import SANKEY_NODES
+from settings import SANKEY_CHANNELS
 
 
 class Sedmax:
@@ -18,37 +21,73 @@ class Sedmax:
         self.username = None
         self.password = None
         self.db = SANKEY_DATABASE
-        self.node = self.getting_nodes(self.db)
-        self.channel = self.getting_channel(self.db)
-        self.node_color = self.prepare_node_color(self.db)
+        self.node_from_csv = SANKEY_NODES
+        self.channels_from_csv = SANKEY_CHANNELS
+
+        self.node = self.getting_nodes(self.node_from_csv)
+        # self.node = self.getting_nodes(self.db)
+        self.channel = self.getting_channel_from_csv()
+        # self.channel = self.getting_channel(self.db)
+        self.node_color = self.node_color()
+        # self.node_color = self.prepare_node_color(self.db)
         self.link_color = self.prepare_link_color(self.node_color)
 
-    @classmethod
-    def getting_nodes(cls, db):
-        with closing(sqlite3.connect(db)) as connection:
-            cursor = connection.cursor()
-            cursor.execute("""select node_name, id from node """)
-            node = dict(cursor.fetchall())
-            # print(node)
-            return node
+    @classmethod  # Забираем словарь из csv файла
+    def getting_nodes(cls, node):
+        with open('node.csv', 'r', encoding='UTF-8') as node:
+            file_reader = csv.DictReader(node)
+            for row in file_reader:
+                node = row
+
+        for key in node:
+            if type(node[key]) == str:
+                node[key] = int(node[key])
+        return node
+
+    @classmethod     # Получение каналов из CSV файла
+    def getting_channel_from_csv(cls):
+        channel_df = pd.read_csv('channel.csv', index_col=0)
+        return channel_df
 
     @classmethod
-    def getting_channel(cls, db):
-        with closing(sqlite3.connect(db)) as connection:
-            channel_df = pd.read_sql('''SELECT sed_id, channel_name, start_node, end_node FROM channel''', connection)
-            channel_df.set_index('sed_id', inplace=True)
-            # print(channel_df)
-            return channel_df
+    def node_color(cls):
+        node_color = []
+        with open('node.csv', 'r', encoding='UTF-8') as node:
+            file_reader = csv.DictReader(node)
+            for row in file_reader:
+                node_len = len(row)
+        for i in range(node_len):
+            r, g, b = np.random.randint(255, size=3)
+            node_color.append(f'rgba({r}, {g}, {b}, 1)')
+        return node_color
 
-    @classmethod
-    def prepare_node_color(cls, db):
-        with closing(sqlite3.connect(db)) as connection:
-            cursor = connection.cursor()
-            cursor.execute("""select node_color from node """)
-            node_raw = list(cursor.fetchall())
-            node_color = ['rgba(' + color[0] + ',' + str(cls.__node_visibility) + ')' for color in node_raw]
-            # print(node_color)
-            return node_color
+    # def getting_channel(cls, db):
+    # @classmethod
+    # def getting_nodes(cls, db):
+    #     with closing(sqlite3.connect(db)) as connection:
+    #         cursor = connection.cursor()
+    #         cursor.execute("""select node_name, id from node """)
+    #         node = dict(cursor.fetchall())
+    #         # print(node)
+    #         return node
+
+    # @classmethod
+    # def getting_channel(cls, db):
+    #     with closing(sqlite3.connect(db)) as connection:
+    #         channel_df = pd.read_sql('''SELECT sed_id, channel_name, start_node, end_node FROM channel''', connection)
+    #         channel_df.set_index('sed_id', inplace=True)
+    #         # channel_df.to_csv('channel.csv', encoding='UTF-8')
+    #         return channel_df
+
+    # @classmethod
+    # def prepare_node_color(cls, db):
+    #     with closing(sqlite3.connect(db)) as connection:
+    #         cursor = connection.cursor()
+    #         cursor.execute("""select node_color from node """)
+    #         node_raw = list(cursor.fetchall())
+    #         node_color = ['rgba(' + color[0] + ',' + str(cls.__node_visibility) + ')' for color in node_raw]
+    #
+    #         return node_color
 
     @classmethod
     def prepare_link_color(cls, node_color: list[str]):

@@ -87,6 +87,7 @@ def load_raw_data(start_date, end_date, selected, filtermessage):
     # добавляем время к дате и преобразовываем к требуемому для API запроса формату
     start_date = datetime.datetime.combine(start_date, datetime.time(00, 00, 00))
     end_date = datetime.datetime.combine(end_date, datetime.time(23, 59, 59))
+    # end_date = datetime.datetime.combine(end_date, datetime.time(23, 00, 00))
     end = end_date.strftime("%Y-%m-%d %H:%M:%S")
     start = start_date.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -348,7 +349,8 @@ tree = update_tree([], state=False)
 common_table = html.Div(dash_table.DataTable(
     id='common_table',
     columns=[{'id': 'index', 'name': 'Характеристка'},
-             {'id': 'value', 'name': 'Значение'}],
+             {'id': 'value', 'name': 'Значение'},
+             {'id': 'index', 'name': 'Значение1'}],
     style_cell={'font-size': 13, 'overflow': 'hidden', 'backgroundColor': "rgba(50,50,50,0.2)"},
 ), style={'padding': '5px'}
 )
@@ -556,7 +558,7 @@ app.layout = html.Div(children=[
      Input("month_button", 'n_clicks')]
 
 )
-def on_button_click(n_day, n_week, n_month):
+def on_button_click(n_day, n_week, n_month):    # Фильтрация по горячим кнопкам
     end_date = datetime.datetime.now().date()
     ctx = callback_context.triggered[0]['prop_id']
     if ctx == '.':
@@ -596,7 +598,7 @@ def update(n, checked):
               )
 def update_raw_data(start_date, end_date, selected, n, filtername):
     global raw_data
-    b_click_count = n - 1
+    # b_click_count = n - 1
     # print('Callback #2' + ', n=' + str(n) + ', click_count=' + str(b_click_count))
     raw_data, def_value, filter_option = load_raw_data(start_date, end_date, selected, filtername)
     filter_content = update_filter(filter_option, def_value)
@@ -669,7 +671,8 @@ def show_report(data):
         device_report = update_table(pd.read_json(data[1]), columns, "Данные по устройствам")
 
         columns = [{'id': 'Характеристика', 'name': 'Характеристка'},
-                   {'id': 'Значение', 'name': 'Значение'}]
+                   {'id': 'Значение', 'name': 'Значения текущие'},
+                   {'id': 'Значение1', 'name': 'Значения за предыдущий период'}]
         common_report = update_table(pd.read_json(data[2]), columns, "Общие данные")
 
         return [common_report, device_report, heatmap]

@@ -23,6 +23,7 @@ def report_by_device(df, devs_list, start, end):
     report_template[['Uptime', 'Uptime_percent', 'outage_time', 'outage_percent']] = total_time, 100, 0, 0
     # report_template[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, 0, 0, 0, 0
     report_template[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, np.NaN, np.NaN, pd.NaT, np.NaN
+    # report_template[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, np.NaN, np.NaN, np.NaN, np.NaN
 
     report_template = report_template.reset_index().drop('index', axis=1)
 
@@ -30,12 +31,13 @@ def report_by_device(df, devs_list, start, end):
         outage_time = df.groupby('common-device')['pq-duration'].sum().item()
         # outage_time = 10
         events = df.groupby('common-device')['common-number'].count().item()
-        outage_min = np.round(df.groupby('common-device')['pq-duration'].fillna('0').min().item(), 2)
-        outage_max = np.round(df.groupby('common-device')['pq-duration'].fillna('0').max().item(), 2)
-        MTBF = str(df.groupby('common-device')['TBF'].mean().fillna('0').dt.round(freq='S').item()).replace('days', 'д')  # seconds
-        MTTR = str(datetime.timedelta(seconds=df.groupby('common-device')['pq-duration'].mean().fillna('0').item()))
+        outage_min = np.round(df.groupby('common-device')['pq-duration'].fillna(0).min().item(), 2)
+        outage_max = np.round(df.groupby('common-device')['pq-duration'].fillna(0).max().item(), 2)
+        MTBF = (str(df.groupby('common-device')['TBF'].mean().fillna(0).dt.round(freq='S').item()).replace('days', 'д'))  # seconds
+        # MTBF = start
+        MTTR = str(datetime.timedelta(seconds=df.groupby('common-device')['pq-duration'].mean().fillna(0).item()))
 
-        return outage_time, events, outage_min, outage_max, MTBF, MTTR
+        return outage_time, events, outage_min, outage_max, MTBF,  MTTR
 
     def calc_features(df):
         df['Uptime'] = total_time - df['outage_time']
@@ -120,6 +122,7 @@ def interval(event):
 
 
 def report(df, device_list, start, end):
+    # Данные за текущий период
     data = df[df['common-device'].isin(device_list)]
     total_time = (end - start).total_seconds()
     outage_time = np.round(data["pq-duration"].sum(), 3)
@@ -127,23 +130,29 @@ def report(df, device_list, start, end):
     outage_time = (outage_time - intersec)
     outage_proc = np.round(100 * outage_time / total_time, 3)
     tot_int = str(datetime.timedelta(seconds=total_time)).replace('days,', 'д')
+    # Данные за предыдущий период
+    x_y = end - start
+    total_time_old = ((end - x_y) - (start - x_y)).total_seconds()
+    tot_int_old = str(datetime.timedelta(seconds=total_time_old)).replace('days,', 'д')
+    outage_time_old = np.round(data["pq-duration"].sum(), 3)
+    outage_proc_old = np.round(100 * outage_time_old / total_time_old, 3)
 
     total = pd.DataFrame.from_dict(
-        {'Выбранный период анализа': start.strftime("%d %b %Y") + " - " + end.strftime("%d %b %Y"),
+        {'Выбранный период анализа': [start.strftime("%d %b %Y") + " - " + end.strftime("%d %b %Y"), (start - x_y).strftime("%d %b %Y") + " - " + start.strftime("%d %b %Y")],
          # 'Секунд в выбранном периоде': f'{int(total_time)}, сек',
-         'Время выбранного периода': f'{tot_int}',
+         'Время выбранного периода': [f'{tot_int}', f'{tot_int_old}'],
          # 'Outage': f'{outage_time}, сек',
-         'Общее время сбоев': f'{outage_proc}, %',
+         'Общее время сбоев': [f'{outage_proc}, %', f'{outage_proc_old}, %'],
          # 'Uptime': f'{total_time - outage_time}, сек',
-         'Общее время без сбоев': f'{np.round(100 * (total_time - outage_time) / total_time, 3)}, %',
-         'Количество событий': data["common-number"].count(),
-         'Количество устройств': len(device_list),
-         'Общая наработка на отказ (MTBF):': str(data["TBF"].mean().round(freq="T")).replace('days', 'д'),
-         'Общее среднее время восстановления (MTTR):': f'{str(datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))).replace("days", "д")}'
+         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 3)}, %', f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)}, %'],
+         'Количество событий': [data["common-number"].count(), data["common-number"].count()],
+         'Количество устройств': [len(device_list), len(device_list)],
+         'Общая наработка на отказ (MTBF):': [str(data["TBF"].mean().round(freq="T")).replace('days', 'д'), str(data["TBF"].mean().round(freq="T")).replace('days', 'д')],
+         'Общее среднее время восстановления (MTTR):': [f'{str(datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))).replace("days", "д")}', f'{str(datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))).replace("days", "д")}']
          },
         orient='Index')
     total = total.reset_index()
-    total = total.rename(columns={'index': 'Характеристика', 0: 'Значение'})
+    total = total.rename(columns={'index': 'Характеристика', 0: 'Значение', 1: 'Значение1'})
 
     return total
 
