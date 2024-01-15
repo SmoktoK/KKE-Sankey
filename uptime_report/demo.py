@@ -48,6 +48,7 @@ filter_option = []
 def_value = []
 devs_id = {}
 raw_data = pd.DataFrame([])
+old_raw_data = pd.DataFrame([])
 cur_start_time = ''
 cur_end_time = ''
 cur_selected = []
@@ -90,7 +91,9 @@ def load_raw_data(start_date, end_date, selected, filtermessage):
     # end_date = datetime.datetime.combine(end_date, datetime.time(23, 00, 00))
     end = end_date.strftime("%Y-%m-%d %H:%M:%S")
     start = start_date.strftime("%Y-%m-%d %H:%M:%S")
-
+    old_date = end_date - start_date
+    old_start = (start_date - old_date).strftime("%Y-%m-%d %H:%M:%S")
+    old_end = (start_date - datetime.timedelta(0, 1, 0)).strftime("%Y-%m-%d %H:%M:%S")
     # перечень устройств с протоколом 106 (SATEC ККЭ)
     devs = pq_devices(s, ['obj-1'], 106)
     devs = devs.rename(columns={'name': 'common-device'})
@@ -110,8 +113,9 @@ def load_raw_data(start_date, end_date, selected, filtermessage):
         except:
             pass
 
-    # =Запрос журнала по выделенным устройствам за указанный период========================
+    # =Запрос журнала по выделенным устройствам за указанный период и такой-же прошлый период для сравнения=============
     df = j.get_data(journal_id, start, end, filters={'common-device': filterdevice})
+    df_old = j.get_data(journal_id, old_start, old_end, filters={'common-device': filterdevice})
     # пагинация при выборе очень большой даты
     cur_date = pd.to_datetime(df.index[-1])
     bdf_empty = df.empty
@@ -147,10 +151,10 @@ def load_raw_data(start_date, end_date, selected, filtermessage):
 
     # Журнал всех событий за временной диапазон для выбранных устройств
     raw_data = df
-    return df, filtermessage, filter_option
+    return df, filtermessage, filter_option, df_old
 
 
-def load_data(df, start_date, end_date, selected, filtermessage):
+def load_data(df, start_date, end_date, selected, filtermessage, old_df):
     start_date = pd.to_datetime(start_date)
     end_date = pd.to_datetime(end_date)
     start_date = datetime.datetime.combine(start_date, datetime.time(00, 00, 00))
@@ -183,16 +187,22 @@ def load_data(df, start_date, end_date, selected, filtermessage):
     else:
         EMPTY_JOURNAL = False
         df['common-device'] = df['common-device'].map(lambda x: x.split('/')[-1])
+        old_df['common-device'] = old_df['common-device'].map(lambda x: x.split('/')[-1])
         df = df.sort_index(ascending=True)
+        old_df = old_df.sort_index(ascending=True)
         # столбец с временными метками для фильтрации повторяющихся записей
         df['common-tm'] = df.index
+        old_df['common-tm'] = old_df.index
         # фильтрация по имени события в журнале
         df = df.loc[df['common-message'].isin(filtermessage)]
+        old_df = old_df.loc[old_df['common-message'].isin(filtermessage)]
         # фильтрация повторяющихся в журнале событий по столбцам - время, имя устройства, имя события
         df = df.drop_duplicates(subset=['common-device', 'common-tm'])
+        old_df = old_df.drop_duplicates(subset=['common-device', 'common-tm'])
         # df = df.drop_duplicates(subset=['common-device', 'common-message', 'common-tm'])
         # фильтрация по выделенным в дереве устройствам
         df = df[df['common-device'].isin(selected)]
+        old_df = old_df[old_df['common-device'].isin(selected)]
 
         if df.empty:
             EMPTY_JOURNAL = True
@@ -208,7 +218,7 @@ def load_data(df, start_date, end_date, selected, filtermessage):
         df['date'] = df.index.date
 
     device_report = report_by_device(df, selected, start_date, end_date)
-    common_report = report(df, selected, start_date, end_date)
+    common_report = report(df, selected, start_date, end_date, old_df)
     table = uptime_table(df, selected, start_date, end_date, EMPTY_JOURNAL)
 
     return [df.reset_index().to_json(), device_report.to_json(), common_report.to_json(), table.to_json()]
@@ -597,10 +607,10 @@ def update(n, checked):
                State(component_id='filter_kke', component_property='value')]
               )
 def update_raw_data(start_date, end_date, selected, n, filtername):
-    global raw_data
+    global raw_data, old_raw_data
     # b_click_count = n - 1
     # print('Callback #2' + ', n=' + str(n) + ', click_count=' + str(b_click_count))
-    raw_data, def_value, filter_option = load_raw_data(start_date, end_date, selected, filtername)
+    raw_data, def_value, filter_option, old_raw_data = load_raw_data(start_date, end_date, selected, filtername)
     filter_content = update_filter(filter_option, def_value)
     return filter_content
 
@@ -614,7 +624,7 @@ def update_raw_data(start_date, end_date, selected, n, filtername):
               prevent_initial_call=True
               )
 def update_global_var(start_date, end_date, selected, n, filtername):
-    df = load_data(raw_data, start_date, end_date, selected, filtername)
+    df = load_data(raw_data, start_date, end_date, selected, filtername,old_raw_data)
     return df
 
 
