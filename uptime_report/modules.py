@@ -135,23 +135,27 @@ def report(df, device_list, start, end, df_old):
     data_old = df_old[df_old['common-device'].isin(device_list)]
     total_time_old = ((end - x_y) - (start - x_y)).total_seconds()
     tot_int_old = str(datetime.timedelta(seconds=total_time_old)).replace('days,', 'д')
-    outage_time_old = np.round(data_old["pq-duration"].astype('float').sum(), 3)
-    intersec_old = interval(data_old["pq-duration"].astype('float'))
+    outage_time_old = np.round(data_old["pq-duration"].sum(), 3)
+    intersec_old = interval(data_old["pq-duration"])
     outage_time_old = (outage_time_old - intersec_old)
     outage_proc_old = np.round(100 * outage_time_old / total_time_old, 3)
 
     total = pd.DataFrame.from_dict(
-        {'Выбранный период анализа': [start.strftime("%d %b %Y") + " - " + end.strftime("%d %b %Y"), (start - x_y).strftime("%d %b %Y") + " - " + start.strftime("%d %b %Y")],
+        {'Выбранный период анализа': [start.strftime("%d %b %Y") + " - " + end.strftime("%d %b %Y"),
+                                      (start - x_y).strftime("%d %b %Y") + " - " + start.strftime("%d %b %Y")],
          # 'Секунд в выбранном периоде': f'{int(total_time)}, сек',
          'Время выбранного периода': [f'{tot_int}', f'{tot_int_old}'],
          # 'Outage': f'{outage_time}, сек',
          'Общее время сбоев': [f'{outage_proc}, %', f'{outage_proc_old}, %'],
          # 'Uptime': f'{total_time - outage_time}, сек',
-         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 3)}, %', f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)}, %'],
+         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 3)}, %',
+                                   f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)}, %'],
          'Количество событий': [data["common-number"].count(), data_old["common-number"].count()],
          'Количество устройств': [len(device_list), len(device_list)],
-         'Общая наработка на отказ (MTBF):': [str(data["TBF"].mean().round(freq="T")).replace('days', 'д'), str(data["TBF"].mean().round(freq="T")).replace('days', 'д')],
-         'Общее среднее время восстановления (MTTR):': [f'{str(datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))).replace("days", "д")}', f'{str(datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 3))).replace("days", "д")}']
+         'Общая наработка на отказ (MTBF):': [str(data["TBF"].mean().round(freq="T")).replace('days', 'д'),
+                                              str(data_old["TBF"].mean().round(freq="T")).replace('days', 'д')],
+         'Общее среднее время восстановления (MTTR):': [f'{str(datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))).replace("days", "д")}',
+                                                        f'{str(datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 3))).replace("days", "д")}']
          },
         orient='Index')
     total = total.reset_index()

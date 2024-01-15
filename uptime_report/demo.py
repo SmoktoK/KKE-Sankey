@@ -183,6 +183,9 @@ def load_data(df, start_date, end_date, selected, filtermessage, old_df):
         df[cols] = 0
         df['common-device'] = selected
         df['TBF'] = pd.NaT
+        old_df[cols] = 0
+        old_df['common-device'] = selected
+        old_df['TBF'] = pd.NaT
 
     else:
         EMPTY_JOURNAL = False
@@ -209,13 +212,18 @@ def load_data(df, start_date, end_date, selected, filtermessage, old_df):
 
             # time between eventa by device
         df['TBF'] = df.reset_index().groupby('common-device')['dt'].diff().values
+        old_df['TBF'] = old_df.reset_index().groupby('common-device')['dt'].diff().values
         # casting str to float
         df[['pq-duration', 'pq-magnitude', 'pq-reference']] = df[
             ['pq-duration', 'pq-magnitude', 'pq-reference']].replace("", 0).astype('float')
+        old_df[['pq-duration', 'pq-magnitude', 'pq-reference']] = old_df[
+            ['pq-duration', 'pq-magnitude', 'pq-reference']].replace("", 0).astype('float')
         # event_end
         df['end'] = df.index + pd.to_timedelta(df['pq-duration'], unit='s')
+        old_df['end'] = old_df.index + pd.to_timedelta(old_df['pq-duration'], unit='s')
         # event_date
         df['date'] = df.index.date
+        old_df['date'] = old_df.index.date
 
     device_report = report_by_device(df, selected, start_date, end_date)
     common_report = report(df, selected, start_date, end_date, old_df)
@@ -682,7 +690,7 @@ def show_report(data):
 
         columns = [{'id': 'Характеристика', 'name': 'Характеристка'},
                    {'id': 'Значение', 'name': 'Значения текущие'},
-                   {'id': 'Значение1', 'name': 'Значения за предыдущий период'}]
+                   {'id': 'Значение1', 'name': 'Значения за прошедший период'}]
         common_report = update_table(pd.read_json(data[2]), columns, "Общие данные")
 
         return [common_report, device_report, heatmap]
