@@ -139,6 +139,46 @@ def report(df, device_list, start, end, df_old):
     intersec_old = interval(data_old["pq-duration"])
     outage_time_old = (outage_time_old - intersec_old)
     outage_proc_old = np.round(100 * outage_time_old / total_time_old, 3)
+    work_time = np.round(100 * (total_time - outage_time) / total_time, 3)
+    work_time_old = np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)
+
+    #   Расчет дельты за выбранные периоды
+    #   Общее время сбоев
+    if outage_proc > outage_proc_old:
+        delta_outage = f'В {(round((outage_proc / outage_proc_old), 3))} раз(а) хуже'
+    else:
+        delta_outage = f'На {round((outage_proc_old / outage_proc), 3)} % лучше'
+
+    #   Общее время без сбоевы
+    if work_time > work_time_old:
+        delta_no_outage = f'В {round(work_time / work_time_old, 3)} раз(а) лучше'
+    else:
+        delta_no_outage = f'В {round(work_time_old / work_time, 3)} раз(а) хуже'
+
+    #   Количество событий
+    if data["common-number"].count() > data_old["common-number"].count():
+        delta_common = f'На {data["common-number"].count() - data_old["common-number"].count()} больше'
+    else:
+        delta_common = f'На {data_old["common-number"].count() - data["common-number"].count()} меньше'
+
+    # Общая наработка на отказ
+    work_data = int((data["TBF"].mean().round(freq="T")).seconds)
+    work_old_data = int((data_old["TBF"].mean().round(freq="T")).seconds)
+    if work_data > work_old_data:
+        delta_work = f'В {round(work_data / work_old_data, 3)} раз(а) лучше'
+    elif work_data < work_old_data:
+        delta_work = f'В {round(work_data / work_old_data, 3)} раз(а) хуже'
+    elif work_data == work_old_data:
+        delta_work = 'Значения за периоды равны'
+
+    # Время восстановления
+    repair_time = datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))
+    repair_time_old = datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 3))
+
+    if repair_time < repair_time_old:
+        delta_repair = f'В {round(repair_time_old / repair_time, 3)} раз(а) лучше'
+    else:
+        delta_repair = f'В {round(repair_time / repair_time_old, 3)} раз(а) хуже'
 
     total = pd.DataFrame.from_dict(
         {'Выбранный период анализа': [start.strftime("%d %b %Y") + " - " + end.strftime("%d %b %Y"),
@@ -146,20 +186,20 @@ def report(df, device_list, start, end, df_old):
          # 'Секунд в выбранном периоде': f'{int(total_time)}, сек',
          'Время выбранного периода': [f'{tot_int}', f'{tot_int_old}'],
          # 'Outage': f'{outage_time}, сек',
-         'Общее время сбоев': [f'{outage_proc}, %', f'{outage_proc_old}, %'],
+         'Общее время сбоев': [f'{outage_proc} %', f'{outage_proc_old} %', delta_outage],
          # 'Uptime': f'{total_time - outage_time}, сек',
-         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 3)}, %',
-                                   f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)}, %'],
-         'Количество событий': [data["common-number"].count(), data_old["common-number"].count()],
+         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 3)} %',
+                                   f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)} %', delta_no_outage],
+         'Количество событий': [data["common-number"].count(), data_old["common-number"].count(), delta_common],
          'Количество устройств': [len(device_list), len(device_list)],
          'Общая наработка на отказ (MTBF):': [str(data["TBF"].mean().round(freq="T")).replace('days', 'д'),
-                                              str(data_old["TBF"].mean().round(freq="T")).replace('days', 'д')],
+                                              str(data_old["TBF"].mean().round(freq="T")).replace('days', 'д'), delta_work],
          'Общее среднее время восстановления (MTTR):': [f'{str(datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))).replace("days", "д")}',
-                                                        f'{str(datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 3))).replace("days", "д")}']
+                                                        f'{str(datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 3))).replace("days", "д")}', delta_repair]
          },
         orient='Index')
     total = total.reset_index()
-    total = total.rename(columns={'index': 'Характеристика', 0: 'Значение', 1: 'Значение1'})
+    total = total.rename(columns={'index': 'Характеристика', 0: 'Значение', 1: 'Значение1', 2: 'Delta'})
 
     return total
 

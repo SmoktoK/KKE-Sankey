@@ -116,6 +116,7 @@ def load_raw_data(start_date, end_date, selected, filtermessage):
     # =Запрос журнала по выделенным устройствам за указанный период и такой-же прошлый период для сравнения=============
     df = j.get_data(journal_id, start, end, filters={'common-device': filterdevice})
     df_old = j.get_data(journal_id, old_start, old_end, filters={'common-device': filterdevice})
+    # df.to_csv(r'pandas.csv', header=None, index=None, sep=' ', mode='w')
     # пагинация при выборе очень большой даты
     cur_date = pd.to_datetime(df.index[-1])
     bdf_empty = df.empty
@@ -368,7 +369,8 @@ common_table = html.Div(dash_table.DataTable(
     id='common_table',
     columns=[{'id': 'index', 'name': 'Характеристка'},
              {'id': 'value', 'name': 'Значение'},
-             {'id': 'index', 'name': 'Значение1'}],
+             {'id': 'index', 'name': 'Значение1'},
+             {'id': 'index', 'name': 'Delta'}],
     style_cell={'font-size': 13, 'overflow': 'hidden', 'backgroundColor': "rgba(50,50,50,0.2)"},
 ), style={'padding': '5px'}
 )
@@ -398,9 +400,9 @@ update_button = dbc.Button("Обновить", id="update_tree", n_clicks=0,
                            title='Обновить данные дашборда',
                            # style=norma_style
                            )
-day_button = dbc.Button('День', title='Выбрать текущий день', id='day_button')
-week_button = dbc.Button('Неделя', title='Выбрать текущую неделю', id='week_button')
-month_button = dbc.Button('Месяц', title='Выбрать текущий месяц', id='month_button')
+day_button = dbc.Button('День', title='Выбрать текущий день', id='day_button', className="ant-electro-btn-primary")
+week_button = dbc.Button('Неделя', title='Выбрать текущую неделю', id='week_button', className="ant-electro-btn-primary")
+month_button = dbc.Button('Месяц', title='Выбрать текущий месяц', id='month_button', className="ant-electro-btn-primary")
 
 
 # Опции фильтрации журнала
@@ -690,7 +692,8 @@ def show_report(data):
 
         columns = [{'id': 'Характеристика', 'name': 'Характеристка'},
                    {'id': 'Значение', 'name': 'Значения текущие'},
-                   {'id': 'Значение1', 'name': 'Значения за прошедший период'}]
+                   {'id': 'Значение1', 'name': 'Значения за прошедший период'},
+                   {'id': 'Delta', 'name': 'Сравнение результатов текущего и прошлого периодов'}]
         common_report = update_table(pd.read_json(data[2]), columns, "Общие данные")
 
         return [common_report, device_report, heatmap]

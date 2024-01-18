@@ -30,12 +30,27 @@ def out_time_scatter(df):
         summary = data.groupby(data.index.date).sum(numeric_only=True)
         sum_date = [datetime.datetime.strptime(str(dt), '%Y-%m-%d').date() for dt in summary.index]
 
-        fig.add_trace(go.Scatter(x=data.index, y=data['pq-duration'], name=device, opacity=0.6,
+        # Расчет масштаба графиков
+        sum_max = max(summary['pq-duration'])
+        if (sum_max / 60) >= 60:
+            delta = 60
+            delta_time = 'мин'
+            if (sum_max / 3600) >= 1:
+                delta = 3600
+                delta_time = 'ч'
+        else:
+            delta = 60
+            delta_time = 'мин'
+
+
+
+        fig.add_trace(go.Scatter(x=data.index, y=data['pq-duration']/delta, name=device, opacity=0.6,
             legendgroup=f'group{i + 1}', showlegend=False,
                 mode='markers', marker=dict(size=12, color=device_colors[color_id], line=dict(width=1, color='white')),
                                  ), row=1, col=1)
+        # Отрисовка осей на графике
 
-        fig.add_trace(go.Bar(x=summary.index, y=summary['pq-duration'],
+        fig.add_trace(go.Bar(x=summary.index, y=summary['pq-duration']/delta,
         # fig.add_trace(go.Bar(x=sum_date, y=summary['pq-duration'],
         #                     xperiodalignment="start",
                              xperiodalignment='middle',
@@ -44,7 +59,7 @@ def out_time_scatter(df):
                              # slector=dict(type='bar'),
                              base='base',
                              # text=summary.index, textposition='outside', textfont=dict(size=20),
-                             name=device, marker_color=device_colors[color_id], legendgroup=f'group{i + 1}'), row=2, col=1)
+                             name=device, marker_color=device_colors[color_id], legendgroup=f'group{i + 1}'), row=2, col=1,)
 
     fig.update_layout(height=720,
                       # barmode='overlay',
@@ -62,8 +77,8 @@ def out_time_scatter(df):
     #                              showline=True, linewidth=1, linecolor=colors['grid'], mirror=True),
     #                   xaxis_range=(df.date.min()-datetime.timedelta(days=1), df.date.max()+datetime.timedelta(days=1)),
     #                   xaxis2_range=(df.date.min() - datetime.timedelta(days=1), df.date.max() + datetime.timedelta(days=1)),
-                      yaxis1_title="Продолжительность, c",
-                      yaxis2_title="Общее время, c",
+                      yaxis1_title=f"Продолжительность, {delta_time}",
+                      yaxis2_title=f"Общее время, {delta_time}",
                       font_color=colors['graph_font'],
                       title_text='Продолжительность сбоев',
                       titlefont=dict(size=20),
