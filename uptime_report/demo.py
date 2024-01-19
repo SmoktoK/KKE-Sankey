@@ -226,7 +226,7 @@ def load_data(df, start_date, end_date, selected, filtermessage, old_df):
         df['date'] = df.index.date
         old_df['date'] = old_df.index.date
 
-    device_report = report_by_device(df, selected, start_date, end_date)
+    device_report = report_by_device(df, selected, start_date, end_date, old_df)
     common_report = report(df, selected, start_date, end_date, old_df)
     table = uptime_table(df, selected, start_date, end_date, EMPTY_JOURNAL)
 

@@ -13,19 +13,23 @@ def pq_devices(s, nodes, protocol_Id):
     return df_pq
 
 
-def report_by_device(df, devs_list, start, end):
+def report_by_device(df, devs_list, start, end, df_old):
 
     total_time = (end - start).total_seconds()
 
     # Шаблон отчета по утройствам
     report_template = pd.DataFrame({'Присоединение': devs_list})
+    report_template_old = pd.DataFrame({'Присоединение': devs_list})
     # nullt = datetime.timedelta(seconds=0)
     report_template[['Uptime', 'Uptime_percent', 'outage_time', 'outage_percent']] = total_time, 100, 0, 0
+    report_template_old[['Uptime', 'Uptime_percent', 'outage_time', 'outage_percent']] = total_time, 100, 0, 0
     # report_template[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, 0, 0, 0, 0
     report_template[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, np.NaN, np.NaN, pd.NaT, np.NaN
+    report_template_old[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, np.NaN, np.NaN, pd.NaT, np.NaN
     # report_template[['events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = 0, np.NaN, np.NaN, np.NaN, np.NaN
 
     report_template = report_template.reset_index().drop('index', axis=1)
+    report_template_old = report_template_old.reset_index().drop('index', axis=1)
 
     def features(df):
         outage_time = df.groupby('common-device')['pq-duration'].sum().item()
@@ -36,6 +40,18 @@ def report_by_device(df, devs_list, start, end):
         MTBF = (str(df.groupby('common-device')['TBF'].mean().fillna(0).dt.round(freq='S').item()).replace('days', 'д'))  # seconds
         # MTBF = start
         MTTR = str(datetime.timedelta(seconds=df.groupby('common-device')['pq-duration'].mean().fillna(0).item()))
+
+        return outage_time, events, outage_min, outage_max, MTBF,  MTTR
+
+    def features_old(df_old):
+        outage_time = df_old.groupby('common-device')['pq-duration'].sum().item()
+        # outage_time = 10
+        events = df_old.groupby('common-device')['common-number'].count().item()
+        outage_min = np.round(df_old.groupby('common-device')['pq-duration'].fillna(0).min().item(), 2)
+        outage_max = np.round(df_old.groupby('common-device')['pq-duration'].fillna(0).max().item(), 2)
+        MTBF = (str(df_old.groupby('common-device')['TBF'].mean().fillna(0).dt.round(freq='S').item()).replace('days', 'д'))  # seconds
+        # MTBF = start
+        MTTR = str(datetime.timedelta(seconds=df_old.groupby('common-device')['pq-duration'].mean().fillna(0).item()))
 
         return outage_time, events, outage_min, outage_max, MTBF,  MTTR
 
@@ -51,6 +67,18 @@ def report_by_device(df, devs_list, start, end):
         df.fillna(0)
         return df
 
+    def calc_features_old(df_old):
+        df_old['Uptime'] = total_time - df_old['outage_time']
+        df_old['Uptime_percent'] = 100 * df_old['Uptime'] / total_time
+        df_old['outage_percent'] = 100 * df_old['outage_time'] / total_time
+
+        df_old['Uptime'] = pd.to_timedelta(df_old['Uptime'], unit='s').dt.round('s').astype('str').str.replace('days', 'д')
+        df_old['outage_time'] = pd.to_timedelta(df_old['outage_time'], unit='s').dt.round('s').astype('str').str.replace('days', 'д')
+        df_old['outage_min'] = pd.to_timedelta(df_old['outage_min'], unit='s').dt.round('s').astype('str').str.replace('days', 'д')
+        df_old['outage_max'] = pd.to_timedelta(df_old['outage_max'], unit='s').dt.round('s').astype('str').str.replace('days', 'д')
+        df_old.fillna(0)
+        return df_old
+
     for i, row in report_template.iterrows():
         obj = row['Присоединение']
         subset = df[df['common-device'] == obj]
@@ -58,8 +86,18 @@ def report_by_device(df, devs_list, start, end):
             report_template.loc[i, ['outage_time', 'events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = features(
                 subset)
 
+
+    for i, row in report_template_old.iterrows():
+        obj = row['Присоединение']
+        subset = df_old[df_old['common-device'] == obj]
+        if len(subset) > 0:
+            report_template_old.loc[i, ['outage_time', 'events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = features_old(
+                subset)
+
     report_template = calc_features(report_template).round(3)
+    report_template_old = calc_features_old(report_template_old).round(3)
     report_template[['outage_percent', 'Uptime_percent']] = report_template[['outage_percent', 'Uptime_percent']].astype(str)
+    report_template_old[['outage_percent', 'Uptime_percent']] = report_template_old[['outage_percent', 'Uptime_percent']].astype(str)
     return report_template
 
 # функция возвращает общее время сбоев/без сбоев с учётом наложения событий
