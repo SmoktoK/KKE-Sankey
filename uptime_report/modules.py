@@ -109,6 +109,53 @@ def report_by_device(df, devs_list, start, end, df_old):
         ['outage_percent', 'Uptime_percent']].astype(str)
     report_template_old[['outage_percent', 'Uptime_percent']] = report_template_old[
         ['outage_percent', 'Uptime_percent']].astype(str)
+
+    report_template.to_csv('report_template.csv', index=False)
+    report_template_old.to_csv('report_template_old.csv', index=False)
+
+    # Расчет сравнений с предыдущим периодом выбранных устройств
+    for i in range (report_template['Присоединение'].size):
+        if float(report_template['Uptime_percent'][i]) > float(report_template_old['Uptime_percent'][i]):
+            report_template['Uptime_percent'][i] = (f'{report_template['Uptime_percent'][i]}% лучше на '
+                                                    f'{round(float(report_template['Uptime_percent'][i]) - 
+                                                       float(report_template_old['Uptime_percent'][i]), 2)}%')
+        elif float(report_template['Uptime_percent'][i]) < float(report_template_old['Uptime_percent'][i]):
+            report_template['Uptime_percent'][i] = (f'{report_template['Uptime_percent'][i]}% хуже на '
+                                                    f'{round(float(report_template_old['Uptime_percent'][i]) - 
+                                                       float(report_template['Uptime_percent'][i]), 2)}%')
+        elif float(report_template['Uptime_percent'][i]) == float(report_template_old['Uptime_percent'][i]):
+            report_template['Uptime_percent'][i] = (f'{report_template['Uptime_percent'][i]}% равно предыдущему периоду')
+
+
+    for i in range(report_template['Присоединение'].size):
+        if float(report_template['outage_percent'][i]) > float(report_template_old['outage_percent'][i]):
+            report_template['outage_percent'][i] = (f'{report_template['outage_percent'][i]}% лучше на '
+                                                    f'{round(float(report_template['outage_percent'][i]) -
+                                                             float(report_template_old['outage_percent'][i]), 2)}%')
+        elif float(report_template['outage_percent'][i]) < float(report_template_old['outage_percent'][i]):
+            report_template['outage_percent'][i] = (f'{report_template['outage_percent'][i]}% хуже на '
+                                                    f'{round(float(report_template_old['outage_percent'][i]) -
+                                                             float(report_template['outage_percent'][i]), 2)}%')
+        elif float(report_template['outage_percent'][i]) == float(report_template_old['outage_percent'][i]):
+            report_template['outage_percent'][i] = (
+                f'{report_template['outage_percent'][i]}% равно предыдущему периоду')
+
+
+    for i in range(report_template['Присоединение'].size):
+        if int(report_template['events'][i]) > int(report_template_old['events'][i]):
+            report_template['events'][i] = (f'{report_template['events'][i]} лучше на '
+                                                    f'{(int(report_template['events'][i]) -
+                                                             int(report_template_old['events'][i]))}')
+        elif int(report_template['events'][i]) < int(report_template_old['events'][i]):
+            report_template['events'][i] = (f'{report_template['events'][i]} хуже на '
+                                                    f'{(int(report_template_old['events'][i]) -
+                                                             int(report_template['events'][i]))}')
+        elif int(report_template['events'][i]) == int(report_template_old['events'][i]):
+            report_template['events'][i] = (
+                f'{report_template['events'][i]} равно предыдущему периоду')
+
+
+
     return report_template
 
 
