@@ -2,6 +2,7 @@ import datetime
 import time
 
 import pandas as pd
+import math
 
 # time_ran = '30 days 05:49:58'
 # time_ran1 = '10 days 05:49:58'
@@ -30,10 +31,11 @@ def time_delta(i, z, data, data_old):
             data = data.replace('д', 'days')
         if 'д' in data_old:
             data_old = data_old.replace('д', 'days')
-        if data == 'NaT' or 'nan':
+        if data == 'NaT' or math.isnan(data):
             data = '00:00:00'
-        if data_old == 'NaT' or 'nan':
+        if data_old == 'NaT' or math.isnan(data_old):
             data_old = '00:00:00'
+
         data = pd.to_timedelta(data)
         data_old= pd.to_timedelta(data_old)
 
