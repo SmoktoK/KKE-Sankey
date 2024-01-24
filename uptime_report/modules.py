@@ -122,7 +122,7 @@ def report_by_device(df, devs_list, start, end, df_old):
     def time_delta(i, z, data, data_old):
         if z in ['Uptime_percent', 'outage_percent']:
             if float(data) > float(data_old):
-                my_df.loc[i, z] = f'{data}%, лучше на {round(float(data) - float(data_old), 2)}%'
+                my_df.loc[i, z] = f'{data}%, лучше в {round(float(data) / float(data_old), 2)} раза'
             elif float(data) < float(data_old):
                 my_df.loc[i, z] = f'{data}%, хуже на {round(float(data_old) - float(data), 2)}%'
             elif float(data) == float(data_old):
