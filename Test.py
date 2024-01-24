@@ -13,8 +13,9 @@ import math
 report = pd.read_csv('report_template.csv')
 report_old = pd.read_csv('report_template_old.csv')
 column_names = (report.columns.tolist())
-my_df = pd.DataFrame(columns=column_names)
 name = column_names.pop(0)
+my_df = pd.DataFrame(columns=column_names)
+
 
 def time_delta(i, z, data, data_old):
     if z in ['Uptime_percent', 'outage_percent']:

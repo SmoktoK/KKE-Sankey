@@ -110,21 +110,22 @@ def report_by_device(df, devs_list, start, end, df_old):
     report_template_old[['outage_percent', 'Uptime_percent']] = report_template_old[
         ['outage_percent', 'Uptime_percent']].astype(str)
 
-    # report_template.to_csv('report_template.csv', index=False)
-    # report_template_old.to_csv('report_template_old.csv', index=False)
+    report_template.to_csv('report_template.csv', index=False)
+    report_template_old.to_csv('report_template_old.csv', index=False)
 
     # Расчет сравнений с предыдущим периодом выбранных устройств
 
     column_names = (report_template.columns.tolist())
-    my_df = pd.DataFrame(columns=column_names)
     name = column_names.pop(0)
+    my_df = pd.DataFrame(columns=column_names)
+
 
     def time_delta(i, z, data, data_old):
         if z in ['Uptime_percent', 'outage_percent']:
             if float(data) > float(data_old):
-                my_df.loc[i, z] = f'{data}%, лучше в {round(float(data) / float(data_old), 2)} раза'
+                my_df.loc[i, z] = f'{data}%, лучше в {round(float(data) / float(data_old), 2)} раз(а)'
             elif float(data) < float(data_old):
-                my_df.loc[i, z] = f'{data}%, хуже на {round(float(data_old) - float(data), 2)}%'
+                my_df.loc[i, z] = f'{data}%, хуже в {round(float(data_old) / float(data), 2)}раз(а)'
             elif float(data) == float(data_old):
                 my_df.loc[i, z] = f'{data}%, значения равны'
 
@@ -168,6 +169,7 @@ def report_by_device(df, devs_list, start, end, df_old):
             data_old = report_template_old[z][i]
             time_delta(i, z, data, data_old)
 
+    my_df.insert(0, 'Присоединение', report_template['Присоединение'])
     report_template = my_df
     return report_template
 
