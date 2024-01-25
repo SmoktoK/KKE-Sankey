@@ -119,7 +119,6 @@ def report_by_device(df, devs_list, start, end, df_old):
     name = column_names.pop(0)
     my_df = pd.DataFrame(columns=column_names)
 
-
     def time_delta(i, z, data, data_old):
         if z in ['Uptime_percent', 'outage_percent']:
             if float(data) > float(data_old):
@@ -136,22 +135,25 @@ def report_by_device(df, devs_list, start, end, df_old):
                 data_old = '00:00:00'
             if 'д' in data:
                 data = data.replace('д', 'days')
+                data = pd.to_timedelta(data)
             if 'д' in data_old:
                 data_old = data_old.replace('д', 'days')
+                data_old = pd.to_timedelta(data_old)
             if data == 'NaT' or data == pd.NaT:
                 data = '00:00:00'
             if data_old == 'NaT' or data_old == pd.NaT:
                 data_old = '00:00:00'
 
-            data = pd.to_timedelta(data)
-            data_old = pd.to_timedelta(data_old)
-
-            if data > data_old:
+            if data > data_old and data_old != '00:00:00' or data_old != pd.Timedelta('0 days 00:00:00'):
                 my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, лучше в {round(data / data_old, 2)} раз(а)'
-            elif data < data_old:
+            elif data < data_old and data != '00:00:00' or data != pd.Timedelta('0 days 00:00:00'):
                 my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, хуже в {round(data_old / data, 2)} раз(а)'
             elif data == data_old:
                 my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, значения равны'
+            elif data > data_old and data_old == '00:00:00':
+                my_df.loc[i, z] = f'{str(data).replace('days', 'д')} в прошлом периоде {data_old}'
+            elif data < data_old and data == '00:00:00':
+                my_df.loc[i, z] = f'{str(data).replace('days', 'д')} в прошлом периоде {data_old}'
 
         elif z in ['events']:
             if int(data) > int(data_old):
