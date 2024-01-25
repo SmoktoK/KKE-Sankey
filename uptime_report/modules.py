@@ -147,11 +147,11 @@ def report_by_device(df, devs_list, start, end, df_old):
             data_old = pd.to_timedelta(data_old)
 
             if data > data_old:
-                my_df.loc[i, z] = f'{data}, лучше в {round(data / data_old, 2)} раз(а)'
+                my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, лучше в {round(data / data_old, 2)} раз(а)'
             elif data < data_old:
-                my_df.loc[i, z] = f'{data}, хуже в {round(data_old / data, 2)} раз(а)'
+                my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, хуже в {round(data_old / data, 2)} раз(а)'
             elif data == data_old:
-                my_df.loc[i, z] = f'{data}, значения равны'
+                my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, значения равны'
 
         elif z in ['events']:
             if int(data) > int(data_old):
