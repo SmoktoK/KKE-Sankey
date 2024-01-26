@@ -129,31 +129,39 @@ def report_by_device(df, devs_list, start, end, df_old):
                 my_df.loc[i, z] = f'{data}%, значения равны'
 
         elif z in ['Uptime', 'outage_time', 'outage_min', 'outage_max', 'MTBF', 'MTTR']:
-            if pd.isna(data) == True:
-                data = '00:00:00'
-            if pd.isna(data_old) == True:
-                data_old = '00:00:00'
-            if 'д' in data:
-                data = data.replace('д', 'days')
-                data = pd.to_timedelta(data)
-            if 'д' in data_old:
-                data_old = data_old.replace('д', 'days')
-                data_old = pd.to_timedelta(data_old)
-            if data == 'NaT' or data == pd.NaT:
-                data = '00:00:00'
-            if data_old == 'NaT' or data_old == pd.NaT:
-                data_old = '00:00:00'
 
-            if data > data_old and data_old != '00:00:00' or data_old != pd.Timedelta('0 days 00:00:00'):
-                my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, лучше в {round(data / data_old, 2)} раз(а)'
-            elif data < data_old and data != '00:00:00' or data != pd.Timedelta('0 days 00:00:00'):
-                my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, хуже в {round(data_old / data, 2)} раз(а)'
-            elif data == data_old:
-                my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, значения равны'
-            elif data > data_old and data_old == '00:00:00':
-                my_df.loc[i, z] = f'{str(data).replace('days', 'д')} в прошлом периоде {data_old}'
-            elif data < data_old and data == '00:00:00':
-                my_df.loc[i, z] = f'{str(data).replace('days', 'д')} в прошлом периоде {data_old}'
+            if isinstance(data, str):
+                if data in ['NaT']:
+                    data = '0 д 00:00:00'
+                data = (data.split('.'))[0]
+                in_data = pd.to_timedelta(data.replace('д', 'days')).total_seconds()
+            else:
+                data = '0 д 00:00:00'
+                in_data = 0
+
+            if isinstance(data_old, str):
+                if data_old in ['NaT']:
+                    data_old = '0 д 00:00:00'
+                in_data_old = pd.to_timedelta(data_old.replace('д', 'days')).total_seconds()
+            else:
+                in_data_old = 0
+
+            if in_data > in_data_old:
+                try:
+                    my_df.loc[i, z] = f'{data}, лучше в {round(in_data / in_data_old, 2)} раз(а)'
+                except ZeroDivisionError:
+                    my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
+            elif in_data < in_data_old :
+                try:
+                    my_df.loc[i, z] = f'{data}, хуже в {round(in_data_old / in_data, 2)} раз(а)'
+                except ZeroDivisionError:
+                    my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
+            elif in_data == in_data_old:
+                my_df.loc[i, z] = f'{data}, значения равны'
+            # elif in_data > in_data_old and data_old == 0:
+            #     my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
+            # elif in_data < in_data_old and data == 0:
+            #     my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
 
         elif z in ['events']:
             if int(data) > int(data_old):

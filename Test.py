@@ -20,44 +20,45 @@ my_df = pd.DataFrame(columns=column_names)
 def time_delta(i, z, data, data_old):
     if z in ['Uptime_percent', 'outage_percent']:
         if float(data) > float(data_old):
-            my_df.loc[i, z] = f'{data}%, лучше на {round(float(data)-float(data_old), 2)}%'
+            my_df.loc[i, z] = f'{data}%, лучше в {round(float(data) / float(data_old), 2)} раз(а)'
         elif float(data) < float(data_old):
-            my_df.loc[i, z] = f'{data}%, хуже на {round(float(data_old)-float(data), 2)}%'
+            my_df.loc[i, z] = f'{data}%, хуже в {round(float(data_old) / float(data), 2)}раз(а)'
         elif float(data) == float(data_old):
             my_df.loc[i, z] = f'{data}%, значения равны'
 
-
     elif z in ['Uptime', 'outage_time', 'outage_min', 'outage_max', 'MTBF', 'MTTR']:
+
+        if 'д' in data:
+            data = data.replace('д', 'days')
+            data = pd.to_timedelta(data)
+        if 'д' in data_old:
+            data_old = data_old.replace('д', 'days')
+            data_old = pd.to_timedelta(data_old)
         if pd.isna(data) == True:
             data = '00:00:00'
         if pd.isna(data_old) == True:
             data_old = '00:00:00'
         if 'д' in data:
             data = data.replace('д', 'days')
+            data = pd.to_timedelta(data)
         if 'д' in data_old:
             data_old = data_old.replace('д', 'days')
-        if data == 'NaT':
+            data_old = pd.to_timedelta(data_old)
+        if data == 'NaT' or data == pd.NaT:
             data = '00:00:00'
-        if data_old == 'NaT':
+        if data_old == 'NaT' or data_old == pd.NaT:
             data_old = '00:00:00'
 
-
-
-
-
-
-        data = pd.to_timedelta(data)
-        data_old= pd.to_timedelta(data_old)
-
-        if data > data_old:
-            my_df.loc[i, z] = f'{data}, лучше в {round(data / data_old, 2)} раз(а)'
-        elif data < data_old:
-            my_df.loc[i, z] = f'{data}, хуже в {round(data_old / data, 2)} раз(а)'
+        if data > data_old and data_old != '00:00:00' or data_old != pd.Timedelta('0 days 00:00:00'):
+            my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, лучше в {round(data / data_old, 2)} раз(а)'
+        elif data < data_old and data != '00:00:00' or data != pd.Timedelta('0 days 00:00:00'):
+            my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, хуже в {round(data_old / data, 2)} раз(а)'
         elif data == data_old:
-            my_df.loc[i, z] = f'{data}, значения равны'
-
-
-
+            my_df.loc[i, z] = f'{str(data).replace('days', 'д')}, значения равны'
+        elif data > data_old and data_old == '00:00:00':
+            my_df.loc[i, z] = f'{str(data).replace('days', 'д')} в прошлом периоде {data_old}'
+        elif data < data_old and data == '00:00:00':
+            my_df.loc[i, z] = f'{str(data).replace('days', 'д')} в прошлом периоде {data_old}'
 
     elif z in ['events']:
         if int(data) > int(data_old):
@@ -66,7 +67,6 @@ def time_delta(i, z, data, data_old):
             my_df.loc[i, z] = f'{data}, хуже на {int(data_old) - int(data)}'
         elif int(data) == int(data_old):
             my_df.loc[i, z] = f'{data}, значения равны'
-
     return my_df
 
 #
