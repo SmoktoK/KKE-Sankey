@@ -25,6 +25,10 @@ locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
 # Выгрузка хоста из файла конфигурации
 with open('host.cfg', 'r') as host:
     x = host.read()
+with open('login_data.cfg', 'r') as host:
+    t = host.read()
+    y = t.split()
+
 
 # Create a dash application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -32,8 +36,8 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = 'Отчёт ККЭ'
 s = Sedmax(x)
 
-username = 'demo'  # os.environ['SEDMAX_USERNAME']
-password = 'demo'  # os.environ['SEDMAX_PASSWORD']
+username = y[0]  # os.environ['SEDMAX_USERNAME']
+password = y[1]  # os.environ['SEDMAX_PASSWORD']
 s.login(username, password)
 
 el = ElectricalArchive(s)
