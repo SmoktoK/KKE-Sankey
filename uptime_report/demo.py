@@ -284,6 +284,8 @@ def update_tree(checked, state=False):
     devs = pq_devices(s, ['obj-1'], 106)
     devs = device_list
     devs = devs.rename(columns={'name': 'common-device'})
+    # Сортируем фрейм по родителям
+    devs = devs.sort_values('parent')
 
     # двухуровневая структура по дереву только до родителя
     nodes = []
