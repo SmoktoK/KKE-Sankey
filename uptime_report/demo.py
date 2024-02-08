@@ -314,51 +314,24 @@ def update_tree(checked, state=False):
             pass
         nodes.append(node)
 
+    # Формирование дерева устройств
+    def get_children(device, parrent_id):
+        cild_list = []
+        df = device[device['parent'] == parrent_id]
+        if not df.empty:
+            for i in df.index:
+                cilds = get_children(device, df.at[i, 'id'])
+                dict_cild = {'title': df.at[i, 'name'], 'key': df.at[i, 'name']}
+                if len(cilds) > 0:
+                    dict_cild['children'] = cilds
+                cild_list.append(dict_cild)
+        return cild_list
+
+
     # print(devs_id)
-    menu_list = []
-    keys_list = []
-    n = 0
-    #
-    z = 0
-    for i in nodes:
-        if len(i) == 1:
-            z += 1
+    menu_list = get_children(device_list, '')
+    keys_list = device_list['name'].unique().tolist()
 
-    for node in nodes[z:]:
-        if node[-1] not in keys_list:
-            keys_list.append(node[-1])
-            dev_dict = dict()
-            dev_dict['title'] = node[-1]
-            dev_dict['key'] = node[-1]
-            try:
-                dev_dict['children'] = [{'title': node[-2], 'key': node[-2]}]
-            except:
-                dev_dict['children'] = ''
-            menu_list.append(dev_dict)
-            n += 1
-        else:
-            ind = [i for i, e in enumerate(keys_list) if e == node[-1]][0]
-            sub_n = len(menu_list[ind]['children'])
-            menu_list[ind]['children'].append({'title': node[-2], 'key': str(ind) + '-' + str(sub_n)})
-
-    if state:
-        pass
-    else:
-        checked = devs['common-device'].tolist()
-
-    out_list = menu_list
-
-    for i in menu_list[1:]:
-        n = 0
-        while n < len(menu_list) - 1:
-            # Проверить диапазоны
-            try:
-                if i['title'] == menu_list[0]['children'][n]['title']:
-                    out_list[0]['children'][n]['children'] = i['children']
-            except:
-                pass
-            n += 1
-    menu_list = [out_list[0]]
 
     tree_menu = html.Div(dash_treeview_antd.TreeView(
         id='tree_input',
