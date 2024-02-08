@@ -351,6 +351,7 @@ def update_tree(checked, state=False):
     for i in menu_list[1:]:
         n = 0
         while n < len(menu_list) - 1:
+            # Проверить диапазоны
             try:
                 if i['title'] == menu_list[0]['children'][n]['title']:
                     out_list[0]['children'][n]['children'] = i['children']
