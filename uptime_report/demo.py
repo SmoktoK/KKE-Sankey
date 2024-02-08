@@ -280,6 +280,7 @@ def update_tree(checked, state=False):
     device_list = s.get_data(s.host + '/sedmax/pq_journal_webapi/devices_tree', {})
     device_list = pd.DataFrame(device_list['tree'])
     device_list = device_list.rename(columns={'parentCode': 'parent', 'code': 'id'})
+    device_list.to_csv('device_list.csv', index=False)
 
     devs = pq_devices(s, ['obj-1'], 106)
     devs = device_list
@@ -317,7 +318,13 @@ def update_tree(checked, state=False):
     menu_list = []
     keys_list = []
     n = 0
-    for node in nodes[1:]:
+    #
+    z = 0
+    for i in nodes:
+        if len(i) == 1:
+            z += 1
+
+    for node in nodes[z:]:
         if node[-1] not in keys_list:
             keys_list.append(node[-1])
             dev_dict = dict()
@@ -344,8 +351,11 @@ def update_tree(checked, state=False):
     for i in menu_list[1:]:
         n = 0
         while n < len(menu_list) - 1:
-            if i['title'] == menu_list[0]['children'][n]['title']:
-                out_list[0]['children'][n]['children'] = i['children']
+            try:
+                if i['title'] == menu_list[0]['children'][n]['title']:
+                    out_list[0]['children'][n]['children'] = i['children']
+            except:
+                pass
             n += 1
     menu_list = [out_list[0]]
 
