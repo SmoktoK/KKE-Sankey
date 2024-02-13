@@ -33,6 +33,10 @@ class Sedmax:
         self.link_color = self.prepare_link_color(self.node_color)
 
     @classmethod  # Забираем словарь из csv файла
+    # def getting_nodes(cls, node):
+    #     df = pd.read_csv('node.csv')
+    #     node = df.loc[0].to_dict()
+    #     return node
     def getting_nodes(cls, node):
         with open('node.csv', 'r', encoding='UTF-8') as node:
             file_reader = csv.DictReader(node)

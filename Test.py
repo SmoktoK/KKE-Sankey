@@ -1,1 +1,20 @@
-{'title': 'Офис', 'key': 'Офис', 'children': [{'title': 'ВРУ-3.1', 'key': 'ВРУ-3.1', 'children': [{'title': 'Ввод-1 (контр.)', 'key': 'Ввод-1 (контр.)'}]}, {'title': 'ВРУ-3.2', 'key': '0-1', 'children': [{'title': 'Ввод-2 (контр.)', 'key': 'Ввод-2 (контр.)'}]}, {'title': 'ВРУ 1-го этажа', 'key': '0-2', 'children': [{'title': 'Ввод-1 (ком.)', 'key': 'Ввод-1 (ком.)'}]}, {'title': 'ВРУ 2-го этажа', 'key': '0-3', 'children': [{'title': 'Ввод-2 (ком.)', 'key': 'Ввод-2 (ком.)'}]}]}
+import csv
+import pandas as pd
+
+df = pd.read_csv('node.csv')
+# print(df)
+node = df.loc[0]
+node = node.to_dict()
+
+for i in node:
+    print(type(i))
+
+
+# with open('node.csv', 'r', encoding='UTF-8') as node:
+#     file_reader = csv.DictReader(node)
+#     for row in file_reader:
+#         node = row
+#
+# for key in node:
+#     if type(node[key]) == str:
+#         node[key] = int(node[key])
