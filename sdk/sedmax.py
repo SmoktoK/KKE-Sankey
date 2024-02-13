@@ -33,20 +33,21 @@ class Sedmax:
         self.link_color = self.prepare_link_color(self.node_color)
 
     @classmethod  # Забираем словарь из csv файла
-    # def getting_nodes(cls, node):
-    #     df = pd.read_csv('node.csv')
-    #     node = df.loc[0].to_dict()
-    #     return node
     def getting_nodes(cls, node):
-        with open('node.csv', 'r', encoding='UTF-8') as node:
-            file_reader = csv.DictReader(node)
-            for row in file_reader:
-                node = row
-
-        for key in node:
-            if type(node[key]) == str:
-                node[key] = int(node[key])
+        node = pd.read_csv('node.csv')
+        node = node.loc[0].to_dict()
         return node
+
+    # def getting_nodes(cls, node):
+    #     with open('node.csv', 'r', encoding='UTF-8') as node:
+    #         file_reader = csv.DictReader(node)
+    #         for row in file_reader:
+    #             node = row
+    #
+    #     for key in node:
+    #         if type(node[key]) == str:
+    #             node[key] = int(node[key])
+    #     return node
 
     @classmethod     # Получение каналов из CSV файла
     def getting_channel_from_csv(cls):

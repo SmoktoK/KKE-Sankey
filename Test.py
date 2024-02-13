@@ -1,20 +1,2 @@
-import csv
-import pandas as pd
-
-df = pd.read_csv('node.csv')
-# print(df)
-node = df.loc[0]
-node = node.to_dict()
-
-for i in node:
-    print(type(i))
-
-
-# with open('node.csv', 'r', encoding='UTF-8') as node:
-#     file_reader = csv.DictReader(node)
-#     for row in file_reader:
-#         node = row
-#
-# for key in node:
-#     if type(node[key]) == str:
-#         node[key] = int(node[key])
+{'АВР': 6, 'ВРУ-3-1': 16, 'ВРУ-3-2': 17, 'Ввод-1': 1, 'Ввод-2': 7, 'Резерв (ввод 1)': 5, 'Резерв (ввод 2)': 11, 'Шкаф серверный №2': 12, 'ЩВК 3.1': 2, 'ЩВК 3.2': 3, 'ЩВК 3.3': 8, 'ЩР 3.1': 4, 'ЩР 3.2': 9, 'ЩРС-1': 13, 'ЩРС-2': 14}
+{'АВР': 6, 'ВРУ-3-1': 16, 'ВРУ-3-2': 17, 'Ввод-1': 1, 'Ввод-2': 7, 'Резерв (ввод 1)': 5, 'Резерв (ввод 2)': 11, 'Шкаф серверный №2': 12, 'ЩВК 3.1': 2, 'ЩВК 3.2': 3, 'ЩВК 3.3': 8, 'ЩР 3.1': 4, 'ЩР 3.2': 9, 'ЩРС-1': 13, 'ЩРС-2': 14}
