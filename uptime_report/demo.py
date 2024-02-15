@@ -457,8 +457,8 @@ date_picker = html.Div([
                   min_date_allowed=(datetime.datetime.now() - pd.Timedelta(days=730)).date(),
                   max_date_allowed=datetime.datetime.now().date(),
                   # number_of_months_shown=2,
-                  month_format='MMMM YYYY',
-                  display_format='DD MMMM YYYY',
+                  # month_format='MMMM YYYY',
+                  # display_format='DD MMMM YYYY',
               )], title='Выберите период отчёта',
              style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
