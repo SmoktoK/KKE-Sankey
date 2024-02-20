@@ -1,4 +1,6 @@
 import os
+import time
+
 import pandas as pd
 import numpy as np
 import dash
@@ -153,7 +155,6 @@ app.layout = html.Div(children=[
 def on_button_click(n_day, n_week, n_month):    # Фильтрация по горячим кнопкам
     global cur_start_time
     global cur_end_time
-
     end_date = datetime.datetime.now().date()
     ctx = callback_context.triggered[0]['prop_id']
     if ctx == '.':
@@ -184,6 +185,10 @@ def on_button_click(n_day, n_week, n_month):    # Фильтрация по го
 def update_data(start_date, end_date, n):
     global cur_start_time
     global cur_end_time
+    # print(cur_start_time)
+    # print(cur_end_time)
+    # print(start_date)
+    # print(end_date)
     cur_start_time = start_date
     cur_end_time = end_date
     start_date = start_date + ' 00:00:00'
@@ -208,11 +213,12 @@ def update_data(start_date, end_date, n):
 def update_button_style(start_date, end_date, n):
     global cur_start_time
     global cur_end_time
-    print(start_date, end_date, cur_start_time, cur_end_time)
+    print(start_date, cur_start_time, end_date, cur_end_time)
+    time.sleep(0.5)
     if cur_start_time != start_date or cur_end_time != end_date:
-        print('ok')
         return "ant-electro-btn-primary_alarm"
     else:
+        print('ok')
         return "ant-electro-btn-primary"
 
 

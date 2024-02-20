@@ -1,5 +1,5 @@
 import collections
-
+import os
 import datetime
 import locale
 import pathlib
@@ -16,6 +16,7 @@ from dateutil.parser import parse as data_parse
 from sdk import SedmaxHeader, Sedmax, ElectricalArchive, EventJournal
 from uptime_report.graphs import out_time_scatter, out_table
 from uptime_report.modules import pq_devices, report_by_device, report, uptime_table, empty_plot
+from dotenv import load_dotenv
 
 # locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
@@ -23,21 +24,25 @@ locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
 # locale.setlocale(locale.LC_ALL, 'Russian')
 
 # Выгрузка хоста из файла конфигурации
-with open('host.cfg', 'r') as host:
-    x = host.read()
-with open('login_data.cfg', 'r') as host:
-    t = host.read()
-    y = t.split()
+# dotenv_path = os.path.abspath(os.curdir)
+load_dotenv()
+
+
+# with open('host.cfg', 'r') as host:
+#     x = host.read()
+# with open('login_data.cfg', 'r') as host:
+#     t = host.read()
+#     y = t.split()
 
 
 # Create a dash application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # app = dash.Dash(__name__, external_stylesheets=['uptime_report/assets/bootstrap.min.css'])
 app.title = 'Отчёт ККЭ'
-s = Sedmax(x)
+s = Sedmax(os.getenv('HOST_NAME'))
 
-username = y[0]  # os.environ['SEDMAX_USERNAME']
-password = y[1]  # os.environ['SEDMAX_PASSWORD']
+username = os.getenv('LOGIN')  # os.environ['SEDMAX_USERNAME']
+password = os.getenv('PASS')  # os.environ['SEDMAX_PASSWORD']
 s.login(username, password)
 
 el = ElectricalArchive(s)
