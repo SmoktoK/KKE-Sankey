@@ -77,10 +77,10 @@ end_date = datetime.datetime.now().date()
 
 
 date_picker = html.Div([
-    html.B(' Электроснабжение офиса. Диаграмма Sankey распределения активной энергии',
+    html.B('Диаграмма Sankey распределения активной энергии',
            style={'text-align': 'center', 'color': '#ffffff', 'font-size': 22, 'font-family': 'sans-serif',
                   'margin-left': '20px'}),
-    html.Div([update_button,
+    html.Div([month_button, week_button, day_button, update_button,
               dcc.DatePickerRange(
                   id='date-picker-range',
                   # initial_visible_month=(datetime.datetime.now() - pd.Timedelta(days=30)).date(),
@@ -96,18 +96,18 @@ date_picker = html.Div([
               )], title='Выберите период отчёта',
              style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
-    html.Div(
-        [
-            day_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    html.Div(
-        [
-            week_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    html.Div(
-        [
-            month_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         day_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         week_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         month_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
 ], style={'margin': '1px 0px 0px 0px', 'padding': '0px', 'backgroundColor': "grey",
           'box-shadow': '0 0 2px 2px rgba(0,0,0,0.3)'}

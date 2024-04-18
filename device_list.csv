@@ -1,12 +1,1 @@
-id,parent,name,nodeType
-object-1,,Офис,1
-object-2,object-1,ВРУ-3.1,1
-object-3,object-1,ВРУ-3.2,1
-object-5,object-1,ВРУ 1-го этажа,1
-object-4,object-1,ВРУ 2-го этажа,1
-object-20,,Тестирование,1
-device-101,object-2,Ввод-1 (контр.),2
-device-102,object-3,Ввод-2 (контр.),2
-device-201,object-5,Ввод-1 (ком.),2
-device-202,object-4,Ввод-2 (ком.),2
-device-100041,object-20,SATEC PM180 Test,2
+

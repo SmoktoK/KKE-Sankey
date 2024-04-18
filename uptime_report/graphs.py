@@ -77,7 +77,8 @@ def out_time_scatter(df):
     #                              showline=True, linewidth=1, linecolor=colors['grid'], mirror=True),
     #                   xaxis_range=(df.date.min()-datetime.timedelta(days=1), df.date.max()+datetime.timedelta(days=1)),
     #                   xaxis2_range=(df.date.min() - datetime.timedelta(days=1), df.date.max() + datetime.timedelta(days=1)),
-                      yaxis1_title=f"Продолжительность, {delta_time}",
+    #                   yaxis1_title=f"Продолжительность, {delta_time}",
+                      yaxis1_title=dict(text=f'Продолжительность, {delta_time}'),
                       yaxis2_title=f"Общее время, {delta_time}",
                       font_color=colors['graph_font'],
                       title_text='Продолжительность сбоев',
@@ -86,7 +87,7 @@ def out_time_scatter(df):
                       # paper_bgcolor=colors['plot_background'],
                       hovermode="x unified",
                       legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                      margin=dict(l=0, r=0, b=30, t=80, pad=1),
+                      margin=dict(l=50, r=0, b=30, t=80, pad=1),
                       )
 
     fig.update_traces(

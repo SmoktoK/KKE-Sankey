@@ -4,6 +4,7 @@ import datetime
 import locale
 import pathlib
 import sys
+import logging
 
 import dash
 import dash_bootstrap_components as dbc
@@ -18,6 +19,12 @@ from uptime_report.graphs import out_time_scatter, out_table
 from uptime_report.modules import pq_devices, report_by_device, report, uptime_table, empty_plot
 from dotenv import load_dotenv
 
+
+logging.basicConfig(level=logging.DEBUG,
+                    filename='my_log.log',
+                    format='%(asctime)s - %(levelname)s - %(funcName)s: %(lineno)d - %(message)s',
+                    datefmt='%H:%M:%S')
+
 # locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
 # locale.setlocale(locale.LC_ALL, '')
@@ -28,21 +35,25 @@ locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
 load_dotenv()
 
 
-# with open('host.cfg', 'r') as host:
-#     x = host.read()
-# with open('login_data.cfg', 'r') as host:
-#     t = host.read()
-#     y = t.split()
+with open('host.cfg', 'r') as host:
+    x = host.read()
+with open('login_data.cfg', 'r') as host:
+    t = host.read()
+    y = t.split()
 
 
 # Create a dash application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # app = dash.Dash(__name__, external_stylesheets=['uptime_report/assets/bootstrap.min.css'])
 app.title = 'Отчёт ККЭ'
-s = Sedmax(os.getenv('HOST_NAME'))
+# s = Sedmax(os.getenv('HOST_NAME'))
+s = Sedmax(x)
 
-username = os.getenv('LOGIN')  # os.environ['SEDMAX_USERNAME']
-password = os.getenv('PASS')  # os.environ['SEDMAX_PASSWORD']
+username = y[0] #os.environ['SEDMAX_USERNAME']
+password = y[1] #os.environ['SEDMAX_PASSWORD']
+
+# username = os.getenv('LOGIN')  # os.environ['SEDMAX_USERNAME']
+# password = os.getenv('PASS')  # os.environ['SEDMAX_PASSWORD']
 s.login(username, password)
 
 el = ElectricalArchive(s)
@@ -448,10 +459,10 @@ start_date = (datetime.datetime.now() - pd.Timedelta(days=30)).date()
 end_date = datetime.datetime.now().date()
 
 date_picker = html.Div([
-    html.B(' Электроснабжение офиса. Анализ параметров ККЭ',
+    html.B('Анализ параметров ККЭ',
            style={'text-align': 'center', 'color': '#ffffff', 'font-size': 22, 'font-family': 'sans-serif',
                   'margin-left': '20px'}),
-    html.Div([update_button,
+    html.Div([month_button, week_button, day_button, update_button,
               dcc.DatePickerRange(
                   id='date-picker-range',
                   # initial_visible_month=(datetime.datetime.now() - pd.Timedelta(days=30)).date(),
@@ -467,18 +478,18 @@ date_picker = html.Div([
               )], title='Выберите период отчёта',
              style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
-    html.Div(
-        [
-            day_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    html.Div(
-        [
-            week_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    html.Div(
-        [
-            month_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         day_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         week_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         month_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
 ], style={'margin': '1px 0px 0px 0px', 'padding': '0px', 'backgroundColor': "grey",
           'box-shadow': '0 0 2px 2px rgba(0,0,0,0.3)'}

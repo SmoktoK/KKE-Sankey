@@ -5,10 +5,16 @@ import sqlite3
 import csv
 from contextlib import closing
 import datetime
+import logging
 import numpy as np
 from settings import SANKEY_DATABASE
 from settings import SANKEY_NODES
 from settings import SANKEY_CHANNELS
+
+logging.basicConfig(level=logging.DEBUG,
+                    filename='my_log.log',
+                    format='%(asctime)s - %(levelname)s - %(funcName)s: %(lineno)d - %(message)s',
+                    datefmt='%H:%M:%S')
 
 
 class Sedmax:
@@ -111,7 +117,10 @@ class Sedmax:
             self.username = username
             self.password = password
         else:
+            logging.DEBUG('r.status_code')
             raise Exception(f'Status code: {r.status_code}. {r.json()["message"]}')
+
+
 
     def update_token(self):
         if self.username is not None and self.password is not None:
