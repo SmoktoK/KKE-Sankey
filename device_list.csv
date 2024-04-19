@@ -1,1 +1,5 @@
-
+id,parent,name,nodeType
+object-1,,Корневой объект,1
+device-1,object-1,SATEC PM180,2
+device-2,object-1,SATEC PM720,2
+device-3,object-1,SATEC PM130,2

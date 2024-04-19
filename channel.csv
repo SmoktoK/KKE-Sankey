@@ -1,2 +1,4 @@
 sed_id,channel_name,start_node,end_node
-101,P4.1.1. Яч.1а,1,2
+1,SATEC PM180,1,2
+2,SATEC PM720,1,2
+3,SATEC PM130,1,2
