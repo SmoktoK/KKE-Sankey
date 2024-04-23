@@ -293,7 +293,10 @@ def update_tree(checked, state=False):
     devs_id.clear()  # очистка словаря имен и id устройств дерева
     # device_list = s.devices_tree()
     # смена ветки API и структуры запроса/ответа в связи с обновлением
-    device_list = s.get_data(s.host + '/sedmax/pq_journal_webapi/devices_tree', {})
+    try:
+        device_list = s.get_data(s.host + '/sedmax/pq_journal_webapi/devices_tree', {})
+    except:
+        device_list = {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки', 'nodeType': 1}]}
     device_list = pd.DataFrame(device_list['tree'])
     device_list = device_list.rename(columns={'parentCode': 'parent', 'code': 'id'})
     device_list.to_csv('device_list.csv', index=False)
