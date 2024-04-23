@@ -160,9 +160,11 @@ class Sedmax:
             if new_r.status_code == 200:
                 return new_r.json()
             else:
-                raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
+                return [{'channel': 'el-dev-1-ea_imp-30m', 'data': [], 'status': {'code': 2, 'message': 'unknown channel "el-dev-1-ea_imp-30m"'}}]
+                # raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
         else:
-            raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
+            return [{'channel': 'el-dev-1-ea_imp-30m', 'data': [], 'status': {'code': 2, 'message': 'unknown channel "el-dev-1-ea_imp-30m"'}}]
+            # raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
 
     def categories(self):
         url = self.host + '/sedmax/web/archive/categories'

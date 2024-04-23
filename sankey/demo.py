@@ -90,24 +90,11 @@ date_picker = html.Div([
                   # min_date_allowed=(datetime.datetime.now() - pd.Timedelta(days=365)).date(),
                   min_date_allowed=(datetime.datetime.now() - pd.Timedelta(days=730)).date(),
                   max_date_allowed=datetime.datetime.now().date(),
-                  # number_of_months_shown=2,
-                  # month_format='MMMM YYYY',
-                  # display_format='DD MMMM YYYY',
+
               )], title='Выберите период отчёта',
              style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
-    # html.Div(
-    #     [
-    #         day_button
-    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    # html.Div(
-    #     [
-    #         week_button
-    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    # html.Div(
-    #     [
-    #         month_button
-    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+
 
 ], style={'margin': '1px 0px 0px 0px', 'padding': '0px', 'backgroundColor': "grey",
           'box-shadow': '0 0 2px 2px rgba(0,0,0,0.3)'}
@@ -194,16 +181,14 @@ def update_data(start_date, end_date, n):
     start_date = start_date + ' 00:00:00'
     end_date = end_date + ' 23:59:59'
     data = load_data(s, start_date, end_date)
+    if data[0]['value'][0] == 0.01:
+        data[0]['node_color'][1] = 'rgba(114, 114, 114, 1)'
+        data[0]['node_color'][0] = 'rgba(114, 114, 114, 1)'
+        data[0]['link_colors'][0] = 'rgba(114, 114, 114, 1)'
     body = ubdate_Sankey(data[0])
     return data, body
 
-# @app.callback(Output(component_id='app_body', component_property='children'),
-#     Input(component_id='memory-output', component_property='data'))
-# def sankey_figure(data):
-#     print("Finish")
-#     print(data)
-#     body = ubdate_Sankey(data)
-#     return body
+
 
 
 @app.callback(Output(component_id='update_', component_property='className'),
