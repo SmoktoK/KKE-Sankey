@@ -1,5 +1,12 @@
 id,parent,name,nodeType
-object-1,,Корневой объект,1
-device-1,object-1,SATEC PM180,2
-device-2,object-1,SATEC PM720,2
-device-3,object-1,SATEC PM130,2
+object-1,,Офис,1
+object-1005,object-1,ВРУ 2 этаж,1
+object-1006,object-1005,ВРУ-3.1,1
+object-1004,object-1,ВРУ 1 этаж,1
+object-1007,object-1005,ВРУ-3.2,1
+object-20,,Тестирование,1
+device-101,object-1006,EM720 (Ввод-1 - контр.),2
+device-102,object-1007,PM180 (Ввод-2 - контр.),2
+device-201,object-1004,EM720 (Ввод 1 - комм.),2
+device-202,object-1004,EM720 (Ввод 1 - комм.),2
+device-100041,object-20,SATEC PM180 Test,2

@@ -296,10 +296,10 @@ def update_tree(checked, state=False):
     try:
         device_list = s.get_data(s.host + '/sedmax/pq_journal_webapi/devices_tree', {})
     except:
-        device_list = {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки', 'nodeType': 1}]}
+        device_list = {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки', 'nodeType': 1},{'code': 'object-1005', 'name': 'ВРУ 2 этаж', 'nodeType': 1, 'parentCode': 'object-1'}]}
     device_list = pd.DataFrame(device_list['tree'])
     device_list = device_list.rename(columns={'parentCode': 'parent', 'code': 'id'})
-    device_list.to_csv('device_list.csv', index=False)
+    # device_list.to_csv('device_list.csv', index=False)
 
     devs = pq_devices(s, ['obj-1'], 106)
     devs = device_list
