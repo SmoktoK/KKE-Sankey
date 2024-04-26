@@ -1,9 +1,10 @@
 import collections
-
+import os
 import datetime
 import locale
 import pathlib
 import sys
+import logging
 
 import dash
 import dash_bootstrap_components as dbc
@@ -16,6 +17,13 @@ from dateutil.parser import parse as data_parse
 from sdk import SedmaxHeader, Sedmax, ElectricalArchive, EventJournal
 from uptime_report.graphs import out_time_scatter, out_table
 from uptime_report.modules import pq_devices, report_by_device, report, uptime_table, empty_plot
+from dotenv import load_dotenv
+
+
+logging.basicConfig(level=logging.DEBUG,
+                    filename='my_log.log',
+                    format='%(asctime)s - %(levelname)s - %(funcName)s: %(lineno)d - %(message)s',
+                    datefmt='%H:%M:%S')
 
 # locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
@@ -23,6 +31,10 @@ locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
 # locale.setlocale(locale.LC_ALL, 'Russian')
 
 # Выгрузка хоста из файла конфигурации
+# dotenv_path = os.path.abspath(os.curdir)
+load_dotenv()
+
+
 with open('host.cfg', 'r') as host:
     x = host.read()
 with open('login_data.cfg', 'r') as host:
@@ -34,10 +46,14 @@ with open('login_data.cfg', 'r') as host:
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 # app = dash.Dash(__name__, external_stylesheets=['uptime_report/assets/bootstrap.min.css'])
 app.title = 'Отчёт ККЭ'
+# s = Sedmax(os.getenv('HOST_NAME'))
 s = Sedmax(x)
 
-username = y[0]  # os.environ['SEDMAX_USERNAME']
-password = y[1]  # os.environ['SEDMAX_PASSWORD']
+username = y[0] #os.environ['SEDMAX_USERNAME']
+password = y[1] #os.environ['SEDMAX_PASSWORD']
+
+# username = os.getenv('LOGIN')  # os.environ['SEDMAX_USERNAME']
+# password = os.getenv('PASS')  # os.environ['SEDMAX_PASSWORD']
 s.login(username, password)
 
 el = ElectricalArchive(s)
@@ -277,13 +293,21 @@ def update_tree(checked, state=False):
     devs_id.clear()  # очистка словаря имен и id устройств дерева
     # device_list = s.devices_tree()
     # смена ветки API и структуры запроса/ответа в связи с обновлением
-    device_list = s.get_data(s.host + '/sedmax/pq_journal_webapi/devices_tree', {})
+    try:
+        device_list = s.get_data(s.host + '/sedmax/pq_journal_webapi/devices_tree', {})
+    except:
+        device_list = {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки', 'nodeType': 1},{'code': 'object-1005', 'name': 'Ошибка', 'nodeType': 1, 'parentCode': 'object-1'}]}
+    if device_list.get('tree', '') == '':
+        device_list = {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки', 'nodeType': 1},{'code': 'object-1005', 'name': 'Ошибка', 'nodeType': 1, 'parentCode': 'object-1'}]}
     device_list = pd.DataFrame(device_list['tree'])
     device_list = device_list.rename(columns={'parentCode': 'parent', 'code': 'id'})
+    # device_list.to_csv('device_list.csv', index=False)
 
     devs = pq_devices(s, ['obj-1'], 106)
     devs = device_list
     devs = devs.rename(columns={'name': 'common-device'})
+    # Сортируем фрейм по родителям
+    devs = devs.sort_values('parent')
 
     # двухуровневая структура по дереву только до родителя
     nodes = []
@@ -311,41 +335,24 @@ def update_tree(checked, state=False):
             pass
         nodes.append(node)
 
+    # Формирование дерева устройств
+    def get_children(device, parrent_id):
+        cild_list = []
+        df = device[device['parent'] == parrent_id]
+        if not df.empty:
+            for i in df.index:
+                cilds = get_children(device, df.at[i, 'id'])
+                dict_cild = {'title': df.at[i, 'name'], 'key': df.at[i, 'name']}
+                if len(cilds) > 0:
+                    dict_cild['children'] = cilds
+                cild_list.append(dict_cild)
+        return cild_list
+
+
     # print(devs_id)
-    menu_list = []
-    keys_list = []
-    n = 0
-    for node in nodes[1:]:
-        if node[-1] not in keys_list:
-            keys_list.append(node[-1])
-            dev_dict = dict()
-            dev_dict['title'] = node[-1]
-            dev_dict['key'] = node[-1]
-            try:
-                dev_dict['children'] = [{'title': node[-2], 'key': node[-2]}]
-            except:
-                dev_dict['children'] = ''
-            menu_list.append(dev_dict)
-            n += 1
-        else:
-            ind = [i for i, e in enumerate(keys_list) if e == node[-1]][0]
-            sub_n = len(menu_list[ind]['children'])
-            menu_list[ind]['children'].append({'title': node[-2], 'key': str(ind) + '-' + str(sub_n)})
+    menu_list = get_children(device_list, '')
+    keys_list = device_list['name'].unique().tolist()
 
-    if state:
-        pass
-    else:
-        checked = devs['common-device'].tolist()
-
-    out_list = menu_list
-
-    for i in menu_list[1:]:
-        n = 0
-        while n < len(menu_list) - 1:
-            if i['title'] == menu_list[0]['children'][n]['title']:
-                out_list[0]['children'][n]['children'] = i['children']
-            n += 1
-    menu_list = [out_list[0]]
 
     tree_menu = html.Div(dash_treeview_antd.TreeView(
         id='tree_input',
@@ -457,10 +464,10 @@ start_date = (datetime.datetime.now() - pd.Timedelta(days=30)).date()
 end_date = datetime.datetime.now().date()
 
 date_picker = html.Div([
-    html.B(' Электроснабжение офиса. Анализ параметров ККЭ',
+    html.B('Анализ параметров ККЭ',
            style={'text-align': 'center', 'color': '#ffffff', 'font-size': 22, 'font-family': 'sans-serif',
                   'margin-left': '20px'}),
-    html.Div([update_button,
+    html.Div([month_button, week_button, day_button, update_button,
               dcc.DatePickerRange(
                   id='date-picker-range',
                   # initial_visible_month=(datetime.datetime.now() - pd.Timedelta(days=30)).date(),
@@ -471,23 +478,23 @@ date_picker = html.Div([
                   min_date_allowed=(datetime.datetime.now() - pd.Timedelta(days=730)).date(),
                   max_date_allowed=datetime.datetime.now().date(),
                   # number_of_months_shown=2,
-                  month_format='MMMM YYYY',
-                  display_format='DD MMMM YYYY',
+                  # month_format='MMMM YYYY',
+                  # display_format='DD MMMM YYYY',
               )], title='Выберите период отчёта',
              style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
-    html.Div(
-        [
-            day_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    html.Div(
-        [
-            week_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
-    html.Div(
-        [
-            month_button
-        ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         day_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         week_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
+    # html.Div(
+    #     [
+    #         month_button
+    #     ], style={'float': 'right', 'padding': '1px', 'margin': '0px 0px 0px 0px'}),
 
 ], style={'margin': '1px 0px 0px 0px', 'padding': '0px', 'backgroundColor': "grey",
           'box-shadow': '0 0 2px 2px rgba(0,0,0,0.3)'}

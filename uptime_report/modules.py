@@ -59,8 +59,8 @@ def report_by_device(df, devs_list, start, end, df_old):
 
     def calc_features(df):
         df['Uptime'] = total_time - df['outage_time']
-        df['Uptime_percent'] = 100 * df['Uptime'] / total_time
-        df['outage_percent'] = 100 * df['outage_time'] / total_time
+        df['Uptime_percent'] = round((100 * df['Uptime'] / total_time), 2)
+        df['outage_percent'] = round((100 * df['outage_time'] / total_time), 2)
 
         df['Uptime'] = pd.to_timedelta(df['Uptime'], unit='s').dt.round('s').astype('str').str.replace('days', 'д')
         df['outage_time'] = pd.to_timedelta(df['outage_time'], unit='s').dt.round('s').astype('str').str.replace('days',
@@ -103,15 +103,15 @@ def report_by_device(df, devs_list, start, end, df_old):
                 i, ['outage_time', 'events', 'outage_min', 'outage_max', 'MTBF', 'MTTR']] = features_old(
                 subset)
 
-    report_template = calc_features(report_template).round(3)
-    report_template_old = calc_features_old(report_template_old).round(3)
+    report_template = calc_features(report_template).round(2)
+    report_template_old = calc_features_old(report_template_old).round(2)
     report_template[['outage_percent', 'Uptime_percent']] = report_template[
         ['outage_percent', 'Uptime_percent']].astype(str)
     report_template_old[['outage_percent', 'Uptime_percent']] = report_template_old[
         ['outage_percent', 'Uptime_percent']].astype(str)
 
-    report_template.to_csv('report_template.csv', index=False)
-    report_template_old.to_csv('report_template_old.csv', index=False)
+    # report_template.to_csv('report_template.csv', index=False)
+    # report_template_old.to_csv('report_template_old.csv', index=False)
 
     # Расчет сравнений с предыдущим периодом выбранных устройств
 
@@ -120,13 +120,24 @@ def report_by_device(df, devs_list, start, end, df_old):
     my_df = pd.DataFrame(columns=column_names)
 
     def time_delta(i, z, data, data_old):
-        if z in ['Uptime_percent', 'outage_percent']:
-            if float(data) > float(data_old):
-                my_df.loc[i, z] = f'{data}%, лучше в {round(float(data) / float(data_old), 2)} раз(а)'
-            elif float(data) < float(data_old):
-                my_df.loc[i, z] = f'{data}%, хуже в {round(float(data_old) / float(data), 2)}раз(а)'
-            elif float(data) == float(data_old):
-                my_df.loc[i, z] = f'{data}%, значения равны'
+        if z in ['Uptime_percent']:
+            # if float(data) > float(data_old):
+            #     my_df.loc[i, z] = f'{data}%, лучше в {round(float(data) / float(data_old), 2)} раз(а)'
+            # elif float(data) < float(data_old):
+            #     my_df.loc[i, z] = f'{data}%, хуже в {round(float(data_old) / float(data), 2)} раз(а)'
+            # elif float(data) == float(data_old):
+            #     my_df.loc[i, z] = f'{data}%, значения равны'
+            my_df.loc[i, z] = f'{data}%, {compare(float(data), float(data_old))}'
+
+        elif z in ['outage_percent']:
+            # if float(data) > float(data_old):
+            #     my_df.loc[i, z] = f'{data}%, хуже в {round(float(data) / float(data_old), 2)} раз(а)'
+            # elif float(data) < float(data_old):
+            #     my_df.loc[i, z] = f'{data}%, лучше в {round(float(data_old) / float(data), 2)} раз(а)'
+            # elif float(data) == float(data_old):
+            #     my_df.loc[i, z] = f'{data}%, значения равны'
+
+            my_df.loc[i, z] = f'{data}%, {compare(float(data_old), float(data))}'
 
         elif z in ['Uptime', 'outage_time', 'outage_min', 'outage_max', 'MTBF', 'MTTR']:
 
@@ -146,18 +157,21 @@ def report_by_device(df, devs_list, start, end, df_old):
             else:
                 in_data_old = 0
 
-            if in_data > in_data_old:
-                try:
-                    my_df.loc[i, z] = f'{data}, лучше в {round(in_data / in_data_old, 2)} раз(а)'
-                except ZeroDivisionError:
-                    my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
-            elif in_data < in_data_old :
-                try:
-                    my_df.loc[i, z] = f'{data}, хуже в {round(in_data_old / in_data, 2)} раз(а)'
-                except ZeroDivisionError:
-                    my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
-            elif in_data == in_data_old:
-                my_df.loc[i, z] = f'{data}, значения равны'
+            my_df.loc[i, z] = f'{data}, {compare(float(in_data), float(in_data_old))}'
+
+            # if in_data > in_data_old:
+            #     try:
+            #         my_df.loc[i, z] = f'{data}, лучше в {round(in_data / in_data_old, 2)} раз(а)'
+            #     except ZeroDivisionError:
+            #         my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
+            # elif in_data < in_data_old :
+            #     try:
+            #         my_df.loc[i, z] = f'{data}, хуже в {round(in_data_old / in_data, 2)} раз(а)'
+
+            #     except ZeroDivisionError:
+            #         my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
+            # elif in_data == in_data_old:
+            #     my_df.loc[i, z] = f'{data}, значения равны'
             # elif in_data > in_data_old and data_old == 0:
             #     my_df.loc[i, z] = f'{data} в прошлом периоде {data_old}'
             # elif in_data < in_data_old and data == 0:
@@ -242,41 +256,59 @@ def interval(event):
                         break
     return total_rez
 
+def compare(val1, val2):
+    try:
+        num1 = max(val2, val1)
+        num2 = min(val1, val2)
+
+        if round((num1 / num2), 2) != 1:
+            out_val = (round((num1 / num2), 2))
+        else:
+            for i in range(len(str(num1 / num2))):
+                if round((num1 / num2), i) != 1:
+                    break
+            out_val = (round((num1 / num2), i))
+
+        result = f'В {out_val} раз(а) лучше' if val1 > val2 else f'В {out_val} раз(а) хуже' if val2 > val1 else 'Значения за периоды равны'
+    except ZeroDivisionError:
+        result = f'в прошлом периоде {val2}'
+    except:
+        result = ''
+
+    return result
+
 
 # Собираем таблицу с общими данными
 def report(df, device_list, start, end, df_old):
     # Данные за текущий период
     data = df[df['common-device'].isin(device_list)]
     total_time = (end - start).total_seconds()
-    outage_time = np.round(data["pq-duration"].sum(), 3)
+    outage_time = np.round(data["pq-duration"].sum(), 2)
     intersec = interval(data["pq-duration"])
     outage_time = (outage_time - intersec)
-    outage_proc = np.round(100 * outage_time / total_time, 3)
+    outage_proc = np.round(100 * outage_time / total_time, 2)
     tot_int = str(datetime.timedelta(seconds=total_time)).replace('days,', 'д')
     # Данные за предыдущий период
     x_y = end - start
     data_old = df_old[df_old['common-device'].isin(device_list)]
     total_time_old = ((end - x_y) - (start - x_y)).total_seconds()
     tot_int_old = str(datetime.timedelta(seconds=total_time_old)).replace('days,', 'д')
-    outage_time_old = np.round(data_old["pq-duration"].sum(), 3)
+    outage_time_old = np.round(data_old["pq-duration"].sum(), 2)
     intersec_old = interval(data_old["pq-duration"])
     outage_time_old = (outage_time_old - intersec_old)
-    outage_proc_old = np.round(100 * outage_time_old / total_time_old, 3)
-    work_time = np.round(100 * (total_time - outage_time) / total_time, 3)
-    work_time_old = np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)
+    outage_proc_old = np.round(100 * outage_time_old / total_time_old, 2)
+    work_time = np.round(100 * (total_time - outage_time) / total_time, 2)
+    work_time_old = np.round(100 * (total_time_old - outage_time_old) / total_time_old, 2)
+
+
+
 
     #   Расчет дельты за выбранные периоды
-    #   Общее время сбоев
-    if outage_proc > outage_proc_old:
-        delta_outage = f'В {(round((outage_proc / outage_proc_old), 3))} раз(а) хуже'
-    else:
-        delta_outage = f'На {round((outage_proc_old / outage_proc), 3)} % лучше'
+    delta_outage = compare(outage_proc_old, outage_proc)
 
-    #   Общее время без сбоевы
-    if work_time > work_time_old:
-        delta_no_outage = f'В {round(work_time / work_time_old, 3)} раз(а) лучше'
-    else:
-        delta_no_outage = f'В {round(work_time_old / work_time, 3)} раз(а) хуже'
+    #   Общее время без сбоев
+
+    delta_no_outage = compare(work_time, work_time_old)
 
     #   Количество событий
     if data["common-number"].count() > data_old["common-number"].count():
@@ -287,21 +319,14 @@ def report(df, device_list, start, end, df_old):
     # Общая наработка на отказ
     work_data = int((data["TBF"].mean().round(freq="T")).seconds)
     work_old_data = int((data_old["TBF"].mean().round(freq="T")).seconds)
-    if work_data > work_old_data:
-        delta_work = f'В {round(work_data / work_old_data, 3)} раз(а) лучше'
-    elif work_data < work_old_data:
-        delta_work = f'В {round(work_data / work_old_data, 3)} раз(а) хуже'
-    elif work_data == work_old_data:
-        delta_work = 'Значения за периоды равны'
+
+    delta_work = compare(work_data, work_old_data)
 
     # Время восстановления
-    repair_time = datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 3))
-    repair_time_old = datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 3))
+    repair_time = datetime.timedelta(seconds=np.round(data["pq-duration"].mean(), 2))
+    repair_time_old = datetime.timedelta(seconds=np.round(data_old["pq-duration"].mean(), 2))
 
-    if repair_time < repair_time_old:
-        delta_repair = f'В {round(repair_time_old / repair_time, 3)} раз(а) лучше'
-    else:
-        delta_repair = f'В {round(repair_time / repair_time_old, 3)} раз(а) хуже'
+    delta_repair = compare(repair_time_old, repair_time)
 
     total = pd.DataFrame.from_dict(
         {'Выбранный период анализа': [start.strftime("%d %b %Y") + " - " + end.strftime("%d %b %Y"),
@@ -311,8 +336,8 @@ def report(df, device_list, start, end, df_old):
          # 'Outage': f'{outage_time}, сек',
          'Общее время сбоев': [f'{outage_proc} %', f'{outage_proc_old} %', delta_outage],
          # 'Uptime': f'{total_time - outage_time}, сек',
-         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 3)} %',
-                                   f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 3)} %',
+         'Общее время без сбоев': [f'{np.round(100 * (total_time - outage_time) / total_time, 2)} %',
+                                   f'{np.round(100 * (total_time_old - outage_time_old) / total_time_old, 2)} %',
                                    delta_no_outage],
          'Количество событий': [data["common-number"].count(), data_old["common-number"].count(), delta_common],
          'Количество устройств': [len(device_list), len(device_list)],
