@@ -36,6 +36,13 @@ def getting_arch_from_api_for_sankey(s: Sedmax, req: list[dict]) -> dict:
     url = s.host + '/sedmax/archive_webapi/archive'
     for ask in req:
         raw_data = s.get_data(url, ask)
+        if len(raw_data) == 0:
+            for id in ask['channels']:
+                if 'ea_imp-30m' in id:
+                    sum_energy[id.lstrip('el-dev-').rstrip('ea_imp-30m')] = 0.01
+                else:
+                    sum_energy[id.lstrip('el-dev-').rstrip('ea_exp-30m')] = 0.01
+            return sum_energy
         for chanel in raw_data:
             dev, _, side = chanel['channel'].lstrip('el-dev-').rstrip('-30m').partition('-')
             dev = int(dev)
@@ -94,7 +101,7 @@ def load_data(s: Sedmax, start_date: datetime, end_date: datetime) -> list[dict]
     request = prepare_arch_request(s.channel.index.tolist(), start_date, end_date)
     arch_data = getting_arch_from_api_for_sankey(s, request)
     data_df = s.channel.copy()
-    data_df['sum_energy'] = data_df.index.map(arch_data)
+    data_df['sum_energy'] = data_df.index.map(arch_data).fillna(0)
     data_df = cleaning_data(data_df)
     value = data_df['sum_energy'].tolist()
     source, target = prepare_source_target(labels, s, data_df)

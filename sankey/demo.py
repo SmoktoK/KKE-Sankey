@@ -181,11 +181,11 @@ def update_data(start_date, end_date, n):
     start_date = start_date + ' 00:00:00'
     end_date = end_date + ' 23:59:59'
     data = load_data(s, start_date, end_date)
-    if data[0]['value'][0] == 0.01:
-        data[0]['node_color'][1] = 'rgba(114, 114, 114, 1)'
-        data[0]['node_color'][0] = 'rgba(114, 114, 114, 1)'
-        data[0]['link_colors'][0] = 'rgba(114, 114, 114, 1)'
-    body = ubdate_Sankey(data[0])
+    for i in range(len(data[0]['node_color'])):
+        if data[0]['value'][i] == 0.01:
+            data[0]['node_color'][i] = 'rgba(114, 114, 114, 1)'
+            data[0]['link_colors'][i] = 'rgba(114, 114, 114, 1)'
+        body = ubdate_Sankey(data[0])
     return data, body
 
 

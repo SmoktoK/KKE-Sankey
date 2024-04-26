@@ -33,16 +33,20 @@ class Sedmax:
         self.node = self.getting_nodes(self.node_from_csv)
         # self.node = self.getting_nodes(self.db)
         self.channel = self.getting_channel_from_csv()
-        # self.channel = self.getting_channel(self.db)
+        # # self.channel = self.getting_channel(self.db)
         self.node_color = self.node_color()
-        # self.node_color = self.prepare_node_color(self.db)
+        # # self.node_color = self.prepare_node_color(self.db)
         self.link_color = self.prepare_link_color(self.node_color)
 
     @classmethod  # Забираем словарь из csv файла
     def getting_nodes(cls, node):
-        node = pd.read_csv('node.csv')
-        node = node.loc[0].to_dict()
-        return node
+        try:
+            node = pd.read_csv('node.csv')
+            node = node.loc[0].to_dict()
+            return node
+        except Exception as err:
+            logging.warning(f'Не удалось прочитать печерень узлов, ошибка "{err.args}"')
+            return {'0': 'Нет узлов'}
 
     # def getting_nodes(cls, node):
     #     with open('node.csv', 'r', encoding='UTF-8') as node:
@@ -57,19 +61,26 @@ class Sedmax:
 
     @classmethod     # Получение каналов из CSV файла
     def getting_channel_from_csv(cls):
-        channel_df = pd.read_csv('channel.csv', index_col=0)
-        return channel_df
+        try:
+            channel_df = pd.read_csv('channel.csv', index_col=0)
+            return channel_df
+        except Exception as err:
+            logging.warning(f'Не удалось прочитать печерень каналов, ошибка "{err.args}"')
+            return pd.DataFrame()
 
     @classmethod
     def node_color(cls):
         node_color = []
-        with open('node.csv', 'r', encoding='UTF-8') as node:
-            file_reader = csv.DictReader(node)
-            for row in file_reader:
-                node_len = len(row)
-        for i in range(node_len):
-            r, g, b = np.random.randint(255, size=3)
-            node_color.append(f'rgba({r}, {g}, {b}, 1)')
+        try:
+            with open('node.csv', 'r', encoding='UTF-8') as node:
+                file_reader = csv.DictReader(node)
+                for row in file_reader:
+                    node_len = len(row)
+            for i in range(node_len):
+                r, g, b = np.random.randint(255, size=3)
+                node_color.append(f'rgba({r}, {g}, {b}, 1)')
+        except Exception as err:
+            logging.warning(f'Не удалось прочитать печерень цветов узлов и каналов, ошибка "{err.args}"')
         return node_color
 
     # def getting_channel(cls, db):
@@ -102,38 +113,56 @@ class Sedmax:
 
     @classmethod
     def prepare_link_color(cls, node_color: list[str]):
-        link_colors = [color.rpartition(',')[0] + ',' + str(cls.__link_visibility) + ')' for color in node_color]
-        # print(link_colors)
+        link_colors = []
+        try:
+            link_colors = [color.rpartition(',')[0] + ',' + str(cls.__link_visibility) + ')' for color in node_color]
+        except Exception as err:
+            logging.warning(f'Не удалось подготовить печерень цветов узлов и каналов, ошибка "{err.args}"')
         return link_colors
 
     def login(self, username, password):
-        r = requests.post(
-            self.host + '/sedmax/auth/login',
-            data=json.dumps({'Login': username, 'Password': password})
-        )
-
-        if r.status_code == 200:
-            self.token = r.cookies.get_dict()["jwt"]
-            self.username = username
-            self.password = password
-        else:
-            logging.DEBUG('r.status_code')
-            raise Exception(f'Status code: {r.status_code}. {r.json()["message"]}')
-
-
-
-    def update_token(self):
-        if self.username is not None and self.password is not None:
+        try:
             r = requests.post(
                 self.host + '/sedmax/auth/login',
-                data=json.dumps({'Login': self.username, 'Password': self.password})
+                data=json.dumps({'Login': username, 'Password': password}),
+                timeout=2
             )
             if r.status_code == 200:
                 self.token = r.cookies.get_dict()["jwt"]
+                self.username = username
+                self.password = password
+                logging.debug('Успешная регистрация')
+                return True
             else:
-                raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
-        else:
-            raise Exception(f'Need to login first. Use login("username", "password") method.')
+                logging.warning(f'Не удачный запрос. Код ответа {r.status_code}')
+                # raise Exception(f'Status code: {r.status_code}. {r.json()["message"]}')
+                return False
+        except Exception as err:
+            logging.warning(f'Не удалось выполнить запрос, ошибка "{err.args}"')
+            return False
+
+    def update_token(self):
+        try:
+            if self.username is not None and self.password is not None:
+                r = requests.post(
+                    self.host + '/sedmax/auth/login',
+                    data=json.dumps({'Login': self.username, 'Password': self.password}),
+                    timeout=2
+                )
+                if r.status_code == 200:
+                    self.token = r.cookies.get_dict()["jwt"]
+                    logging.debug(f'Запрос обновления токена выполнен успешно')
+                    return True
+                else:
+                    logging.warning(f'Не удалось выполнить запрос. Код ответа: {r.status_code}, сообщение: {r.json()["message"]}')
+                    return False
+            else:
+                logging.warning(f'Не удалось выполнить запрос. Не найдены логин и пароль')
+                return False
+        except Exception as err:
+            logging.warning(f'Не удалось выполнить запрос, ошибка "{err.args}"')
+            return False
+
 
     def get_token(self):
         return self.token
@@ -142,29 +171,44 @@ class Sedmax:
         return self.host
 
     def get_data(self, url, request):
-        r = requests.post(
-            url,
-            json=request,
-            cookies={'jwt': self.token}
-        )
-
-        if r.status_code == 200:
-            return r.json()
-        elif r.status_code == 401 or r.status_code == 403:
-            self.update_token()
-            new_r = requests.post(
+        try:
+            r = requests.post(
                 url,
                 json=request,
-                cookies={'jwt': self.token}
+                cookies={'jwt': self.token},
+                timeout=2
             )
-            if new_r.status_code == 200:
-                return new_r.json()
+
+            if r.status_code == 200:
+                logging.debug(f'Запрос по адресу "{url}" выполнен успешно')
+                return r.json()
+
+            elif r.status_code == 401 or r.status_code == 403:
+                self.update_token()
+                try:
+                    new_r = requests.post(
+                        url,
+                        json=request,
+                        cookies={'jwt': self.token},
+                        timeout=2
+                    )
+                except Exception as err:
+                    logging.warning(f'Не удалось выполнить запрос, ошибка "{err.args}"')
+                    return {}
+                if new_r.status_code == 200:
+                    logging.debug(f'Запрос по адресу "{url}" выполнен успешно после обновления токена')
+                    return new_r.json()
+                else:
+                    logging.warning( f'Не удалось выполнить запрос по адресу "{url}". Код ответа: {r.status_code}, сообщение: {r.json()["message"]}')
+                    return {}
+                    # return {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки данных', 'nodeType': 1}]}
             else:
-                return {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки данных', 'nodeType': 1}]}
-                # raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
-        else:
-            return {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки данных', 'nodeType': 1}]}
-            # raise Exception(f'Status code: {r.status_code}, message: {r.json()["message"]}')
+                logging.warning(f'Не удалось выполнить запрос по адресу "{url}". Код ответа: {r.status_code}, сообщение: {r.json()["message"]}')
+                return {}
+                # return {'tree': [{'code': 'object-1', 'parentCode': '', 'name': 'Ошибка выгрузки данных', 'nodeType': 1}]}
+        except Exception as err:
+            logging.warning(f'Не удалось выполнить запрос, ошибка "{err.args}"')
+            return {}
 
     def categories(self):
         url = self.host + '/sedmax/web/archive/categories'
@@ -184,18 +228,24 @@ class Sedmax:
         return df
 
     def devices_list(self, nodes):
-        if type(nodes) is not list:
-            raise Exception(f'Nodes expected to be a "list" type, got {type(nodes)} instead')
+        try:
+            if type(nodes) is not list:
+                raise Exception(f'Nodes expected to be a "list" type, got {type(nodes)} instead')
 
-        url = self.host + '/sedmax/devices_configurator/devices/list'
-        request = {
-            'limit': 0,
-            'nodes': nodes,
-            'offset': 0
-        }
-        r = self.get_data(url, request)
-
-        return pd.DataFrame(r['devices'])
+            url = self.host + '/sedmax/devices_configurator/devices/list'
+            request = {
+                'limit': 0,
+                'nodes': nodes,
+                'offset': 0
+            }
+            r = self.get_data(url, request)
+            if r.get('devices', '') == '':
+                return pd.DataFrame()
+                # r['devices'] = {'devices': [{'deviceId': 1001, 'name': 'Ошибка выгрузки устройств', 'type': 'Ошибка выгрузки устройств', 'protocols': [{'protocolId': 104, 'protocolName': 'IEC 60870-5-104', 'address': '127.0.0.1:2404 (1)', 'sourceId': '1001_104'}], 'active': True, 'id': 'dev-1001', 'path': ''}]}
+            return pd.DataFrame(r['devices'])
+        except Exception as err:
+            logging.warning(f'Не удалось выполнить запрос, ошибка "{err.args}"')
+            return {}
 
     def ti_list(self, nodes):
         if type(nodes) is not list:
@@ -211,3 +261,8 @@ class Sedmax:
 
 # s.electro.get_electro_data([{'device': 101, 'channel': "ea_imp"}],period="30min",begin='2021-01-24',end='2021-01-26')
 # s.electro.get_data(["dev-101_ea_imp"],period=["30min"],begin='2021-01-24',end='2021-01-26')
+
+# s = Sedmax('http://172.25.233.1')
+# s.username = 'admin'
+# s.password = 'admin'
+# print(s.login(s.username, s.password))
